@@ -10,7 +10,7 @@ const SettingsLayout = ({ title, description, children }) => {
       <div className="flex items-center gap-4">
         {/* BACK BUTTON */}
         <button
-          onClick={() => navigate("/admin/settings")}
+          onClick={() => navigate(-1)}
           className="
             w-11 h-11
             rounded-2xl
@@ -37,7 +37,7 @@ const SettingsLayout = ({ title, description, children }) => {
       </div>
 
       {/* CONTENT CARD */}
-      <div className="bg-white w-full max-w-lg border border-[#e7dcc7] rounded-[32px] p-5 lg:p-8 -z-10">
+      <div className="bg-white w-full  max-w border border-[#e7dcc7] rounded-[32px] p-5 lg:p-8 -z-10">
         {children}
       </div>
     </div>

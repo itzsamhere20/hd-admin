@@ -18,10 +18,20 @@ import Categories from "../pages/products/pages/Categories";
 // settings sub-pages
 import SecuritySettings from "../pages/settings/pages/SecuritySettings";
 import ProfileSettings from "../pages/settings/pages/ProfileSettings";
-import StoreSettings from "../pages/settings/pages/StoreSettings";
+import StoreSettings from "../pages/settings/pages/StoreSettings/StoreSettings";
 import ShippingSettings from "../pages/settings/pages/ShippingSettings";
 import PromoSettings from "../pages/settings/pages/PromoSettings";
 import FAQSettings from "../pages/settings/pages/FAQSettings";
+
+//       store setting  pages----------
+import LandingSettings from "../pages/settings/pages/StoreSettings/pages/LandingSettings";
+import HeroSettings from "../pages/settings/pages/StoreSettings/pages/HeroSettings";
+import HomepageCategoriesSettings from "../pages/settings/pages/StoreSettings/pages/CategoriesSetting";
+import SliderSettings from "../pages/settings/pages/StoreSettings/pages/SliderSettings";
+import ContactSettings from "../pages/settings/pages/StoreSettings/pages/ContactSettings";
+import OwnerSettings from "../pages/settings/pages/StoreSettings/pages/OwnerSettings";
+import BankSettings from "../pages/settings/pages/StoreSettings/pages/BankSettings";
+
 import { Toaster } from "react-hot-toast";
 const AdminRoutes = () => {
   return (
@@ -47,7 +57,7 @@ const AdminRoutes = () => {
 
           <Route path="customers" element={<Customers />} />
           <Route path="analytics" element={<Analytics />} />
-          <Route path="settings" element={<Settings />} />
+
           {/* --------- Product Page Route s-------- */}
           <Route path="products" element={<ProductHome />} />
           <Route path="products/list" element={<Products />} />
@@ -67,6 +77,24 @@ const AdminRoutes = () => {
           <Route path="settings/promos" element={<PromoSettings />} />
 
           <Route path="settings/faqs" element={<FAQSettings />} />
+
+          {/* ----------------------- Store settings pages----------------------- */}
+          <Route path="settings/store/landing" element={<LandingSettings />} />
+
+          <Route path="settings/store/hero" element={<HeroSettings />} />
+
+          <Route
+            path="settings/store/categories"
+            element={<HomepageCategoriesSettings />}
+          />
+
+          <Route path="settings/store/slider" element={<SliderSettings />} />
+
+          <Route path="settings/store/contact" element={<ContactSettings />} />
+
+          <Route path="settings/store/owner" element={<OwnerSettings />} />
+
+          <Route path="settings/store/bank" element={<BankSettings />} />
         </Route>
 
         {/* fallback */}
