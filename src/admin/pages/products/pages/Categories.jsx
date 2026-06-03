@@ -27,6 +27,7 @@ const Categories = () => {
   const [editColor, setEditColor] = useState(""); // ✅ NEW
 
   const [loading, setLoading] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState("");
 
@@ -42,8 +43,10 @@ const Categories = () => {
 
   const fetchCategories = async () => {
     try {
+      setLoading(true);
       const res = await api.get("/categories");
       setCategories(res.data);
+      setLoading(false);
     } catch (err) {
       console.log(err);
     }
@@ -79,7 +82,7 @@ const Categories = () => {
     }
 
     try {
-      setLoading(true);
+      setAdding(true);
 
       const uploaded = await uploadImage(imageFile);
 
@@ -102,7 +105,7 @@ const Categories = () => {
     } catch (err) {
       toast.error(err.response?.data?.message || "Error");
     } finally {
-      setLoading(false);
+      setAdding(false);
     }
   };
 
@@ -168,6 +171,19 @@ const Categories = () => {
       setUpdating(false);
     }
   };
+  /* LOADING */
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-2 border-black border-t-transparent animate-spin" />
+          <p className="font-cormorant text-xl text-gray-500 tracking-widest">
+            Loading Orders...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -232,7 +248,7 @@ const Categories = () => {
 
         <button
           onClick={handleAdd}
-          disabled={loading}
+          disabled={adding}
           className="bg-primary text-white px-6 rounded-2xl flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
         >
           <Plus size={18} />

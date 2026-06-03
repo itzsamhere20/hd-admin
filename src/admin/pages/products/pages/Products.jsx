@@ -348,6 +348,19 @@ const Products = () => {
       }));
     }
   };
+  /* LOADING */
+  if (loadingProducts) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-2 border-black border-t-transparent animate-spin" />
+          <p className="font-cormorant text-xl text-gray-500 tracking-widest">
+            Loading Orders...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative  w-full  overflow-x-hidden">
@@ -394,7 +407,6 @@ const Products = () => {
           <Plus size={20} /> Add Product{" "}
         </button>
       </div>
-
       {/* FILTERS */}
       <div className="bg-white border border-[#e7dcc7] rounded-3xl p-4 mb-6">
         <div className="flex flex-col lg:flex-row gap-4">
@@ -443,53 +455,10 @@ const Products = () => {
           </select>
         </div>
       </div>
-
       {/* MOBILE CARDS */}
       <div className="2xl:hidden space-y-4 w-full overflow-x-hidden ">
         {/* ---------skeleton cards-----------*/}
-        {loadingProducts ? (
-          [...Array(5)].map((_, index) => (
-            <div
-              key={index}
-              className="
-        bg-white
-        border border-[#e7dcc7]
-        rounded-3xl
-        p-4
-        animate-pulse
-      "
-            >
-              <div className="flex gap-4">
-                {/* IMAGE */}
-                <div className="w-24 h-24 rounded-2xl bg-[#f3ede3]" />
-
-                <div className="flex-1 space-y-3">
-                  <div className="h-5 w-2/3 bg-[#f3ede3] rounded-xl" />
-
-                  <div className="h-4 w-1/3 bg-[#f3ede3] rounded-xl" />
-
-                  <div className="flex gap-2">
-                    <div className="h-6 w-12 bg-[#f3ede3] rounded-lg" />
-                    <div className="h-6 w-20 bg-[#f3ede3] rounded-lg" />
-                  </div>
-
-                  <div className="h-5 w-1/2 bg-[#f3ede3] rounded-xl" />
-
-                  <div className="h-6 w-24 bg-[#f3ede3] rounded-lg" />
-                </div>
-              </div>
-
-              <div className="flex justify-between mt-4">
-                <div className="h-4 w-20 bg-[#f3ede3] rounded-lg" />
-
-                <div className="flex gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-[#f3ede3]" />
-                  <div className="w-10 h-10 rounded-xl bg-[#f3ede3]" />
-                </div>
-              </div>
-            </div>
-          ))
-        ) : filteredProducts.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           //  -----------mobile cards------------
           <div
             className="
@@ -728,74 +697,7 @@ const Products = () => {
           </thead>
 
           <tbody>
-            {/* ------------- skeleton loader-------- */}
-            {loadingProducts ? (
-              [...Array(6)].map((_, index) => (
-                <tr
-                  key={index}
-                  className="border-b border-[#f5efe4] animate-pulse"
-                >
-                  {/* PRODUCT */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-[#f3ede3]" />
-
-                      <div className="space-y-2">
-                        <div className="h-4 w-32 rounded bg-[#f3ede3]" />
-                        <div className="h-3 w-20 rounded bg-[#f3ede3]" />
-                        <div className="h-6 w-24 rounded bg-[#f3ede3]" />
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* CATEGORY */}
-                  <td>
-                    <div className="h-4 w-20 rounded bg-[#f3ede3]" />
-                  </td>
-
-                  {/* PRICE */}
-                  <td>
-                    <div className="h-4 w-24 rounded bg-[#f3ede3]" />
-                  </td>
-
-                  {/* STOCK */}
-                  <td>
-                    <div className="h-4 w-10 rounded bg-[#f3ede3]" />
-                  </td>
-
-                  {/* GENDER */}
-                  <td>
-                    <div className="h-8 w-10 rounded-lg bg-[#f3ede3]" />
-                  </td>
-
-                  {/* SIZES */}
-                  <td>
-                    <div className="flex gap-2">
-                      <div className="h-6 w-10 rounded bg-[#f3ede3]" />
-                      <div className="h-6 w-12 rounded bg-[#f3ede3]" />
-                    </div>
-                  </td>
-
-                  {/* DISCOUNT */}
-                  <td>
-                    <div className="h-6 w-16 rounded bg-[#f3ede3]" />
-                  </td>
-
-                  {/* TYPE */}
-                  <td>
-                    <div className="h-6 w-20 rounded bg-[#f3ede3]" />
-                  </td>
-
-                  {/* ACTIONS */}
-                  <td>
-                    <div className="flex gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-[#f3ede3]" />
-                      <div className="w-10 h-10 rounded-xl bg-[#f3ede3]" />
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : filteredProducts.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <tr>
                 <td
                   colSpan="9"
@@ -1006,7 +908,6 @@ const Products = () => {
           </tbody>
         </table>
       </div>
-
       {/* RIGHT DRAWER */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 bg-black/30 flex justify-end">
@@ -1620,7 +1521,6 @@ const Products = () => {
           </div>
         </div>
       )}
-
       {/* DELETE MODAL */}
       {deleteModal && (
         <div className="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
