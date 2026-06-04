@@ -32,13 +32,6 @@ const storeSections = [
   },
 
   {
-    title: "Homepage Categories",
-    desc: "Choose featured homepage categories",
-    icon: Shapes,
-    path: "/admin/settings/store/categories",
-  },
-
-  {
     title: "Homepage Slider",
     desc: "Manage promotional homepage slides",
     icon: Images,

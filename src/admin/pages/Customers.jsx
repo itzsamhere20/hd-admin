@@ -785,7 +785,7 @@ function DeleteModal({ customer, deleting, onConfirm, onCancel }) {
 function StatCard({ icon, title, value, sub }) {
   return (
     <div className="bg-white border border-[#e7dcc7] rounded-3xl p-5 flex items-center gap-4">
-      <div className="w-11 h-11 rounded-2xl bg-[#f7f4ef] border border-[#e7dcc7] flex items-center justify-center  text-primary shrink-0">
+      <div className="w-11 h-11 rounded-2xl bg-[#f7f4ef] border border-[#e7dcc7] flex items-center justify-center  text-primary/80 shrink-0">
         {icon}
       </div>
       <div>

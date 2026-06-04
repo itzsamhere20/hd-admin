@@ -9,30 +9,211 @@ import {
   Venus,
   Package,
   ArrowLeft,
-  Stone,
+  ChevronDown,
+  TrendingUp,
+  AlertTriangle,
+  Tag,
+  Layers,
 } from "lucide-react";
 import api from "../../../api/api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+/* =========================
+   STAT CARD  (matches Orders)
+========================= */
+function StatCard({ icon, title, value, sub }) {
+  return (
+    <div className="bg-white border border-[#e7dcc7] rounded-3xl p-5 flex items-center gap-4">
+      <div className="w-11 h-11 rounded-2xl bg-[#f7f4ef] border border-[#e7dcc7] flex items-center justify-center shrink-0 text-primary">
+        {icon}
+      </div>
+      <div>
+        <p className="text-xs text-gray-400 uppercase tracking-widest">
+          {title}
+        </p>
+        <h3 className="font-semibold text-gray-800 text-lg leading-tight">
+          {value}
+        </h3>
+        {sub && <p className="text-xs text-gray-400 mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+
+/* =========================
+   DELETE MODAL  (matches Orders style)
+========================= */
+function DeleteModal({ onConfirm, onCancel, deleting }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[999999]">
+      <div className="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl">
+        <div className="w-12 h-12 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-4">
+          <AlertTriangle size={22} className="text-red-500" />
+        </div>
+        <h2 className="font-luxury text-2xl text-gray-800">Delete Product?</h2>
+        <p className="text-sm text-gray-500 mt-2 leading-relaxed">
+          This product will be permanently deleted. This cannot be undone.
+        </p>
+        <div className="flex gap-3 mt-6">
+          <button
+            disabled={deleting}
+            onClick={onCancel}
+            className="flex-1 h-[48px] rounded-2xl border border-[#e7dcc7] text-gray-700 hover:bg-[#faf7f2] transition disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={deleting}
+            onClick={onConfirm}
+            className="flex-1 h-[48px] rounded-2xl bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50 font-medium"
+          >
+            {deleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =========================
+   PRODUCT CARD  (new card grid, matches Orders card style)
+========================= */
+function ProductCard({ product, onEdit, onDelete }) {
+  const inStock = Number(product.stock) > 0;
+  const lowStock = Number(product.stock) > 0 && Number(product.stock) < 5;
+  const discountedPrice = Math.round(
+    product.price - (product.price * (product.discount || 0)) / 100,
+  );
+
+  const stockCfg = inStock
+    ? lowStock
+      ? {
+          bg: "bg-amber-50",
+          text: "text-amber-700",
+          border: "border-amber-200",
+          dot: "bg-amber-400",
+          label: "Low Stock",
+        }
+      : {
+          bg: "bg-emerald-50",
+          text: "text-emerald-700",
+          border: "border-emerald-200",
+          dot: "bg-emerald-400",
+          label: "In Stock",
+        }
+    : {
+        bg: "bg-red-50",
+        text: "text-red-600",
+        border: "border-red-200",
+        dot: "bg-red-400",
+        label: "Out of Stock",
+      };
+
+  return (
+    <div className="bg-white border border-[#e7dcc7] rounded-3xl p-5 flex flex-col gap-4 hover:shadow-md transition-shadow duration-200">
+      {/* TOP ROW */}
+      <div className="flex items-start gap-4">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="w-20 h-20 rounded-2xl object-contain border border-[#e7dcc7] shrink-0 bg-[#faf7f2]"
+        />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="font-semibold text-gray-800 text-[15px] capitalize truncate leading-tight">
+              {product.name}
+            </h2>
+            <button
+              onClick={() => onDelete(product._id)}
+              className="w-7 h-7 rounded-xl border border-[#e7dcc7] flex items-center justify-center hover:bg-red-50 hover:border-red-200 transition-colors shrink-0"
+            >
+              <Trash2 size={13} className="text-gray-400 hover:text-red-500" />
+            </button>
+          </div>
+          <p className="text-xs text-gray-400 mt-0.5">
+            ID: #{product._id?.slice(-5)}
+          </p>
+          <p className="text-sm text-gray-500 mt-0.5">{product.category}</p>
+          {/* Status pill */}
+          <span
+            className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border mt-2 ${stockCfg.bg} ${stockCfg.text} ${stockCfg.border}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${stockCfg.dot}`} />
+            {stockCfg.label}
+          </span>
+        </div>
+      </div>
+
+      {/* TAGS ROW */}
+      <div className="flex flex-wrap gap-2">
+        <span className="px-2.5 py-1 rounded-xl bg-[#faf7f2] border border-[#e7dcc7] text-xs text-gray-600 capitalize">
+          {product.type}
+        </span>
+        <span
+          className={`px-2.5 py-1 rounded-xl text-xs flex items-center gap-1 ${
+            product.gender === "male"
+              ? "bg-blue-50 border border-blue-100 text-blue-600"
+              : "bg-pink-50 border border-pink-100 text-pink-600"
+          }`}
+        >
+          {product.gender === "male" ? <Mars size={11} /> : <Venus size={11} />}
+          {product.gender === "male" ? "Men" : "Women"}
+        </span>
+        {product.discount > 0 && (
+          <span className="px-2.5 py-1 rounded-xl bg-primary/10 border border-primary/20 text-xs text-primary font-medium">
+            {product.discount}% OFF
+          </span>
+        )}
+        {product.sizes?.length > 0 && (
+          <span className="px-2.5 py-1 rounded-xl bg-[#faf7f2] border border-[#e7dcc7] text-xs text-gray-500">
+            {product.sizes.length} size{product.sizes.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
+
+      {/* PRICE + STOCK */}
+      <div className="flex items-center justify-between border-t border-[#f0ebe2] pt-3">
+        <div>
+          {product.discount > 0 && (
+            <p className="text-xs text-gray-400 line-through leading-none">
+              PKR {Number(product.price).toLocaleString()}
+            </p>
+          )}
+          <p className="font-semibold text-gray-800">
+            PKR {Number(discountedPrice).toLocaleString()}
+          </p>
+        </div>
+        <span className="text-sm text-gray-500">
+          Stock:{" "}
+          <span className="font-medium text-gray-700">{product.stock}</span>
+        </span>
+      </div>
+
+      {/* EDIT BUTTON */}
+      <button
+        onClick={() => onEdit(product)}
+        className="flex items-center justify-center gap-1.5 text-sm bg-black text-white px-4 py-2.5 rounded-2xl hover:opacity-80 transition-opacity w-full"
+      >
+        <Pencil size={14} />
+        Edit Product
+      </button>
+    </div>
+  );
+}
+
+/* =========================
+   MAIN COMPONENT
+========================= */
 const Products = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
 
-  // SEARCH + FILTER
   const [search, setSearch] = useState("");
-
-  // DRAWER
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  // LOADING
   const [saving, setSaving] = useState(false);
-
-  // EDITING
   const [editingProduct, setEditingProduct] = useState(null);
-
-  // DELETE MODAL
   const [deleteModal, setDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -42,7 +223,6 @@ const Products = () => {
   const [categories, setCategories] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(true);
 
-  // FORM
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -62,24 +242,22 @@ const Products = () => {
     stone: "",
   });
 
-  // ================= FETCH PRODUCTS And CATEGORIES =================
+  // ================= FETCH =================
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const res = await api.get("/categories");
-
         setCategories(res.data);
       } catch (err) {
         console.log(err);
       }
     };
-
     fetchCategories();
+
     const fetchProducts = async () => {
       try {
         setLoadingProducts(true);
         const res = await api.get("/products");
-
         setProducts(res.data);
       } catch (err) {
         console.log(err);
@@ -87,18 +265,16 @@ const Products = () => {
         setLoadingProducts(false);
       }
     };
-
     fetchProducts();
   }, []);
 
-  // ================= ADD / UPDATE PRODUCT =================
+  // ================= ADD / UPDATE =================
   const handleAddProduct = async () => {
     if (!validateForm()) return;
     if (editingProduct && !hasChanges) {
       setDuplicateError("No changes detected");
       return;
     }
-
     try {
       if (
         !formData.name ||
@@ -112,61 +288,41 @@ const Products = () => {
         toast.error("All fields are required");
         return;
       }
-
       setSaving(true);
-
       const token = localStorage.getItem("token");
 
-      // UPDATE PRODUCT
       if (editingProduct) {
         let uploaded = null;
-
-        // 👇 IMPORTANT FIX: upload new image if selected
-        if (formData.imageFile) {
+        if (formData.imageFile)
           uploaded = await uploadImage(formData.imageFile);
-        }
-
         const res = await api.put(
           `/products/${editingProduct._id}`,
           {
             ...formData,
-            image: uploaded?.url || formData.image, // 👈 fallback to old image
+            image: uploaded?.url || formData.image,
             public_id: uploaded?.public_id || formData.public_id,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+          { headers: { Authorization: `Bearer ${token}` } },
         );
-
         setProducts((prev) =>
           prev.map((p) => (p._id === editingProduct._id ? res.data : p)),
         );
-
         setEditingProduct(null);
         toast.success("Product updated successfully");
-      }
-
-      // ADD PRODUCT
-      else {
+      } else {
         let uploaded = null;
-
-        if (formData.imageFile) {
+        if (formData.imageFile)
           uploaded = await uploadImage(formData.imageFile);
-        }
         const res = await api.post("/products", {
           ...formData,
           image: uploaded?.url,
           public_id: uploaded?.public_id,
         });
-
         setProducts((prev) => [res.data, ...prev]);
         toast.success("Product added successfully");
       }
 
       setDrawerOpen(false);
-
       setFormData({
         name: "",
         price: "",
@@ -190,28 +346,18 @@ const Products = () => {
     }
   };
 
-  // ================= DELETE PRODUCT =================
+  // ================= DELETE =================
   const handleDelete = async () => {
     try {
       setDeleting(true);
-
       const token = localStorage.getItem("token");
-
       const product = products.find((p) => p._id === productToDelete);
-
       await api.delete(`/products/${productToDelete}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        data: {
-          public_id: product?.public_id,
-        },
+        headers: { Authorization: `Bearer ${token}` },
+        data: { public_id: product?.public_id },
       });
-
       setProducts((prev) => prev.filter((p) => p._id !== productToDelete));
-
       toast.success("Product deleted successfully");
-
       setDeleteModal(false);
       setProductToDelete(null);
     } catch (err) {
@@ -225,54 +371,33 @@ const Products = () => {
   const uploadImage = async (file) => {
     const form = new FormData();
     form.append("image", file);
-
     const token = localStorage.getItem("token");
-
     const res = await api.post("/upload", form, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-
-    return {
-      url: res.data.url,
-      public_id: res.data.public_id,
-    };
+    return { url: res.data.url, public_id: res.data.public_id };
   };
-  // --------------------- empty  field checker----------
+
+  // ================= VALIDATION =================
   const validateForm = () => {
     let newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Product name is required";
-    }
-
-    if (!formData.price) {
-      newErrors.price = "Price is required";
-    }
-
-    if (!formData.category) {
-      newErrors.category = "Category is required";
-    }
-
-    if (!formData.stock) {
-      newErrors.stock = "Stock is required";
-    }
-
-    if (!formData.description.trim()) {
+    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.price) newErrors.price = "Price is required";
+    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.stock) newErrors.stock = "Stock is required";
+    if (!formData.description.trim())
       newErrors.description = "Description is required";
-    }
-
-    if (!formData.image && !formData.imageFile) {
+    if (!formData.image && !formData.imageFile)
       newErrors.image = "Product image is required";
-    }
-
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  // ================= FILTERED PRODUCTS =================
+  const clearError = (field) => {
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
+  // ================= FILTER =================
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
       product.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -280,44 +405,26 @@ const Products = () => {
       product._id?.toLowerCase().includes(search.toLowerCase());
 
     let matchesSort = true;
-
-    // SORT FILTER
-    if (sort === "Out of Stock") {
-      matchesSort = Number(product.stock) === 0;
-    }
-
-    if (sort === "Low Stock") {
-      matchesSort = Number(product.stock) < 5;
-    }
-
-    if (sort === "Artificial") {
-      matchesSort = product.type === "artificial";
-    }
-
-    if (sort === "Gold") {
-      matchesSort = product.type === "gold";
-    }
-    if (sort === "Silver") {
-      matchesSort = product.type === "silver";
-    }
-
-    if (sort === "Mens") {
-      matchesSort = product.gender === "male";
-    }
-
-    if (sort === "Women") {
-      matchesSort = product.gender === "female";
-    }
+    if (sort === "Out of Stock") matchesSort = Number(product.stock) === 0;
+    if (sort === "Low Stock") matchesSort = Number(product.stock) < 5;
+    if (sort === "Artificial") matchesSort = product.type === "artificial";
+    if (sort === "Gold") matchesSort = product.type === "gold";
+    if (sort === "Silver") matchesSort = product.type === "silver";
+    if (sort === "Mens") matchesSort = product.gender === "male";
+    if (sort === "Women") matchesSort = product.gender === "female";
 
     const categoryNames = categories.map((cat) => cat.name);
-
-    if (categoryNames.includes(sort)) {
-      matchesSort = product.category === sort;
-    }
+    if (categoryNames.includes(sort)) matchesSort = product.category === sort;
 
     return matchesSearch && matchesSort;
   });
-  // ------------checks weather product updated ornot -----
+
+  // ================= ANALYTICS =================
+  const totalProducts = products.length;
+  const inStockCount = products.filter((p) => Number(p.stock) > 0).length;
+  const outOfStockCount = products.filter((p) => Number(p.stock) === 0).length;
+
+  // ================= CHANGE DETECTION =================
   const normalize = (p) => ({
     name: p.name?.trim(),
     price: Number(p.price),
@@ -333,29 +440,21 @@ const Products = () => {
     care: p.care,
     stone: p.stone,
   });
+
   const hasChanges =
     editingProduct &&
     (JSON.stringify(normalize(formData)) !==
       JSON.stringify(normalize(editingProduct)) ||
       formData.imageFile !== null);
 
-  // ---error clearer function-----
-  const clearError = (field) => {
-    if (errors[field]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
-    }
-  };
-  /* LOADING */
+  // ================= LOADING =================
   if (loadingProducts) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 rounded-full border-2 border-black border-t-transparent animate-spin" />
           <p className="font-cormorant text-xl text-gray-500 tracking-widest">
-            Loading Orders...
+            Loading Products...
           </p>
         </div>
       </div>
@@ -363,580 +462,181 @@ const Products = () => {
   }
 
   return (
-    <div className="relative  w-full  overflow-x-hidden">
+    <div className="min-h-screen p-4 lg:p-8">
       {/* HEADER */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          {/* BACK BUTTON */}
+      <div className="mb-8">
+        <div className="flex items-center gap-4 mb-1">
           <button
             onClick={() => navigate("/admin/products")}
-            className="
-        w-11 h-11
-        rounded-2xl
-        border border-[#e7dcc7]
-        bg-white
-        flex items-center justify-center
-        hover:bg-[#faf7f2]
-        transition
-      "
+            className="w-11 h-11 rounded-2xl border border-[#e7dcc7] bg-white flex items-center justify-center hover:bg-[#faf7f2] transition"
           >
             <ArrowLeft size={20} />
           </button>
-
-          {/* TITLE */}
           <div>
-            <h1 className="font-luxury text-4xl lg:text-5xl text-gray-800">
+            <h1 className="font-luxury text-4xl lg:text-5xl text-gray-800 tracking-tight">
               Products
             </h1>
-
             <p className="font-cormorant text-xl text-gray-500 mt-1">
               Manage your jewelry collection
             </p>
           </div>
         </div>
-
-        {/* ADD PRODUCT */}
-        <button
-          onClick={() => {
-            setEditingProduct(null);
-            setDrawerOpen(true);
-          }}
-          className=" bg-primary text-white px-6 py-3 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 transition w-full lg:w-auto "
-        >
-          {" "}
-          <Plus size={20} /> Add Product{" "}
-        </button>
       </div>
-      {/* FILTERS */}
+
+      {/* STAT CARDS */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <StatCard
+          icon={<Package size={20} />}
+          title="Total Products"
+          value={totalProducts}
+        />
+        <StatCard
+          icon={<TrendingUp size={20} />}
+          title="In Stock"
+          value={inStockCount}
+          sub={`of ${totalProducts} products`}
+        />
+        <StatCard
+          icon={<Layers size={20} />}
+          title="Out of Stock"
+          value={outOfStockCount}
+          sub="need restocking"
+        />
+      </div>
+
+      {/* CONTROLS */}
       <div className="bg-white border border-[#e7dcc7] rounded-3xl p-4 mb-6">
-        <div className="flex flex-col lg:flex-row gap-4">
+        <div className="flex flex-col lg:flex-row gap-3">
           {/* SEARCH */}
           <div className="flex items-center gap-3 border border-[#e7dcc7] rounded-2xl px-4 py-3 flex-1">
-            <Search size={18} className="text-gray-400" />
-
+            <Search size={17} className="text-gray-400 shrink-0" />
             <input
-              type="text"
-              placeholder="Search products..."
+              className="w-full outline-none bg-transparent text-sm placeholder:text-gray-400"
+              placeholder="Search by name, category or ID..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full outline-none bg-transparent"
+            />
+            {search && (
+              <button onClick={() => setSearch("")}>
+                <X size={15} className="text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+
+          {/* SORT */}
+          <div className="relative">
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+              className="appearance-none border border-[#e7dcc7] rounded-2xl px-4 py-3 pr-10 bg-white outline-none text-sm w-full lg:w-[220px]"
+            >
+              <option>All Products</option>
+              <option>Out of Stock</option>
+              <option>Low Stock</option>
+              <option>Gold</option>
+              <option>Silver</option>
+              <option>Artificial</option>
+              <option>Mens</option>
+              <option>Women</option>
+              {categories.map((cat) => (
+                <option key={cat._id}>{cat.name}</option>
+              ))}
+            </select>
+            <ChevronDown
+              size={15}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
             />
           </div>
 
-          {/* Sort */}
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className="
-    border border-[#e7dcc7]
-    rounded-2xl px-4 py-3
-    bg-white outline-none
-    w-full lg:w-[220px]
-  "
+          {/* ADD BUTTON */}
+          <button
+            onClick={() => {
+              setEditingProduct(null);
+              setDrawerOpen(true);
+            }}
+            className="bg-primary text-white px-6 py-3 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 transition whitespace-nowrap"
           >
-            <option>All Products</option>
-
-            <option>Out of Stock</option>
-
-            <option>Low Stock</option>
-
-            <option>Gold</option>
-
-            <option>Silver</option>
-
-            <option>Artificial</option>
-
-            <option>Mens</option>
-
-            <option>Women</option>
-            {categories.map((cat) => (
-              <option key={cat._id}>{cat.name}</option>
-            ))}
-          </select>
+            <Plus size={18} />
+            Add Product
+          </button>
         </div>
       </div>
-      {/* MOBILE CARDS */}
-      <div className="2xl:hidden space-y-4 w-full overflow-x-hidden ">
-        {/* ---------skeleton cards-----------*/}
-        {filteredProducts.length === 0 ? (
-          //  -----------mobile cards------------
-          <div
-            className="
-      bg-white
-      border border-[#e7dcc7]
-      rounded-3xl
-      p-10
-      text-center
-    "
-          >
-            <p className="text-gray-500 text-lg">No products found</p>
-          </div>
-        ) : (
-          filteredProducts.map((product) => (
-            <div
+
+      {/* RESULTS COUNT */}
+      <p className="text-sm text-gray-400 mb-4 px-1">
+        Showing{" "}
+        <span className="text-gray-700 font-medium">
+          {filteredProducts.length}
+        </span>{" "}
+        product{filteredProducts.length !== 1 ? "s" : ""}
+      </p>
+
+      {/* PRODUCT GRID */}
+      {filteredProducts.length === 0 ? (
+        <div className="bg-white border border-[#e7dcc7] rounded-3xl p-14 text-center">
+          <Package size={40} className="mx-auto text-gray-300 mb-3" />
+          <p className="font-cormorant text-2xl text-gray-400">
+            No products found
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-4">
+          {filteredProducts.map((product) => (
+            <ProductCard
               key={product._id}
-              className="
-              bg-white
-              border border-[#e7dcc7]
-              rounded-3xl
-              w-full
-              overflow-hidden
-              p-4
-            "
-            >
-              {/* --------------name and image and discount------------ */}
-              <div className="flex gap-4 min-w-0 w-full">
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-24 h-24 rounded-2xl object-contain"
-                />
+              product={product}
+              onEdit={(product) => {
+                setEditingProduct(product);
+                setFormData({
+                  name: product.name,
+                  price: product.price,
+                  category: product.category,
+                  stock: product.stock,
+                  description: product.description,
+                  image: product.image,
+                  gender: product.gender || "female",
+                  sizes: product.sizes || [],
+                  discount: product.discount || "",
+                  type: product.type || "silver",
+                  stone: product.stone || "",
+                  material: product.material || "",
+                  care: product.care || "",
+                  imageFile: null,
+                  imagePreview: "",
+                  public_id: product.public_id || "",
+                });
+                setDrawerOpen(true);
+              }}
+              onDelete={(id) => {
+                setDeleteModal(true);
+                setProductToDelete(id);
+              }}
+            />
+          ))}
+        </div>
+      )}
 
-                <div className="flex-1 w-full min-w-0 overflow-hidden">
-                  <div className="flex items-start gap-2 w-full min-w-0 ">
-                    <h3 className="font-medium text-lg text-gray-800  truncate  capitalize min-w-0 flex-1">
-                      {product.name}
-                    </h3>
-                    {/* --------discount------ */}
-                    {product.discount > 0 && (
-                      <p className="text-xs bg-primary/20 px-2 py-1 rounded text-primary break-words">
-                        {product.discount}% OFF
-                      </p>
-                    )}
-                  </div>
-                  {/* --------------------category------------- */}
-                  <div className="mt-1 space-y-1">
-                    <p className="text-gray-500 text-sm">{product.category}</p>
-                    {/* -----------gender and Type---------- */}
-                    <div className="flex items-center   gap-5 flex-wrap">
-                      {/* -----------------type---------- */}
-
-                      <span
-                        className="
-    px-2 py-1 rounded-md
-    text-xs border capitalize
-    bg-[#faf7f2]
-    border-[#e7dcc7]
-    text-gray-700
-  "
-                      >
-                        {product.type}
-                      </span>
-                      {/* -------------gender------ */}
-                      <span
-                        className={`
-          ${product.gender === "male" ? "text-blue-500" : "text-pink-500"} 
-`}
-                      >
-                        {product.gender === "male" ? (
-                          <Mars size={22} />
-                        ) : (
-                          <Venus size={22} />
-                        )}
-                      </span>
-                    </div>
-
-                    {/* -----------------sizes ----------------- */}
-                    {product.sizes?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {product.sizes.map((size, index) => (
-                          <span
-                            key={index}
-                            className="
-            px-2 py-[3px]
-            rounded-md
-            bg-[#faf7f2]
-            border border-[#e7dcc7]
-            text-[11px] text-gray-600
-          "
-                          >
-                            {size}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  {/* ----------discounted price------------ */}
-                  <p className="text-primary font-semibold mt-2">
-                    {product.discount > 0 && (
-                      <span className="line-through text-gray-500 mr-2">
-                        PKR {Number(product.price).toLocaleString()}
-                      </span>
-                    )}
-                    PKR{" "}
-                    {Number(
-                      Math.round(
-                        product.price -
-                          (product.price * product.discount) / 100,
-                      ),
-                    ).toLocaleString()}
-                  </p>
-                  {/* ----------------stock------------- */}
-                  <div className="mt-2">
-                    <span
-                      className={`
-                      px-3 py-1 rounded-md text-xs font-medium
-                      ${product.stock > 0 ? "bg-green-100 text-green-500" : "bg-red-100 text-red-500"}
-                    `}
-                    >
-                      {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ACTIONS */}
-              <div className="flex items-center justify-between mt-4">
-                <p className="text-sm text-gray-500">Stock: {product.stock}</p>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      setEditingProduct(product);
-
-                      setFormData({
-                        name: product.name,
-                        price: product.price,
-                        category: product.category,
-                        stock: product.stock,
-                        description: product.description,
-                        image: product.image,
-                        gender: product.gender || "female",
-                        sizes: product.sizes || [],
-                        discount: product.discount || "",
-                        type: product.type || "silver",
-                        stone: product.stone || "",
-                        material: product.material || "",
-                        care: product.care || "",
-                      });
-
-                      setDrawerOpen(true);
-                    }}
-                    className="
-                    w-10 h-10 rounded-xl
-                    bg-[#faf7f2]
-                    flex items-center justify-center
-                    hover:bg-[#f3ecdf]
-                    transition
-                  "
-                  >
-                    <Pencil size={18} />
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setDeleteModal(true);
-                      setProductToDelete(product._id);
-                    }}
-                    className="
-                    w-10 h-10 rounded-xl
-                    bg-red-50 text-red-600
-                    flex items-center justify-center
-                    hover:bg-red-100
-                    transition
-                  "
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* DESKTOP TABLE */}
-      <div
-        className="
-          hidden 2xl:block
-          bg-white
-          max-w-full
-          border border-[#e7dcc7]
-          rounded-3xl
-          overflow-x-hidden
-        "
-      >
-        <table className="w-full min-w-[900px]">
-          <thead>
-            <tr className="border-b border-[#e7dcc7]">
-              <th className="text-left py-5 px-6 font-cormorant text-xl text-gray-500">
-                Product
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Category
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Price
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Stock
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Gender
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Sizes
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Discount
-              </th>
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Type
-              </th>
-
-              <th className="text-left py-5 font-cormorant text-xl text-gray-500">
-                Actions
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredProducts.length === 0 ? (
-              <tr>
-                <td
-                  colSpan="9"
-                  className="text-center py-10 text-gray-500 text-xl"
-                >
-                  No product found
-                </td>
-              </tr>
-            ) : filteredProducts.length === 0 ? (
-              <tr>
-                <td
-                  colSpan="9"
-                  className="text-center py-10 text-gray-500   text-xl"
-                >
-                  No product found
-                </td>
-              </tr>
-            ) : (
-              filteredProducts.map((product) => (
-                <tr
-                  key={product._id}
-                  className="
-                  border-b border-[#f5efe4]
-                  hover:bg-[#faf7f2]
-                  transition
-                "
-                >
-                  {/* PRODUCT */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-16 h-16 rounded-2xl object-contain"
-                      />
-
-                      <div>
-                        <h3 className="font-medium text-gray-800 capitalize">
-                          {product.name}
-                        </h3>
-
-                        <p className="text-sm text-gray-500">
-                          ID: #{product._id.slice(-5)}
-                        </p>
-                        <p
-                          className={` w-max rounded-md text-sm font-medium px-2 py-1 ${product.stock > 0 ? "bg-green-100" : "bg-red-100"}  ${product.stock > 0 ? "text-green-500" : "text-red-500"}`}
-                        >
-                          {product.stock > 0 ? "In Stock" : "Out of Stock"}{" "}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* CATEGORY */}
-                  <td className="text-gray-700">{product.category}</td>
-
-                  {/* PRICE */}
-                  <td className="font-medium text-gray-800 self-center">
-                    {product.discount > 0 ? (
-                      <del className="text-gray-400 font-normal">
-                        PKR {Number(product.price).toLocaleString()}
-                        <br />
-                      </del>
-                    ) : (
-                      ""
-                    )}
-                    PKR{" "}
-                    {Number(
-                      Math.round(
-                        product.price -
-                          (product.price * product.discount) / 100,
-                      ),
-                    ).toLocaleString()}
-                  </td>
-
-                  {/* STOCK */}
-                  <td className="text-gray-700">{product.stock}</td>
-                  {/* GENDER */}
-                  <td>
-                    <span
-                      className={`
-      
-      
-    
-      ${product.gender === "male" ? "text-blue-500" : "text-pink-500"}  
-    `}
-                    >
-                      {product.gender === "male" ? (
-                        <Mars size={22} />
-                      ) : (
-                        <Venus size={22} />
-                      )}
-                    </span>
-                  </td>
-
-                  {/* SIZES */}
-                  <td>
-                    <div className="flex flex-wrap gap-1 max-w-[180px]">
-                      {product.sizes?.length > 0 ? (
-                        product.sizes.map((size, index) => (
-                          <span
-                            key={index}
-                            className="
-            px-2 py-1 rounded-md
-            bg-[#faf7f2]
-            border border-[#e7dcc7]
-            text-xs text-gray-600
-          "
-                          >
-                            {size}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-gray-400 text-sm">—</span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* DISCOUNT */}
-                  <td>
-                    {product.discount > 0 ? (
-                      <span
-                        className="
-        px-3 py-1 rounded-md
-        bg-primary/10
-        text-primary
-        text-sm
-        border border-primary/30
-      "
-                      >
-                        {product.discount}% OFF
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 text-sm">—</span>
-                    )}
-                  </td>
-                  {/* ----------------type----------- */}
-                  <td>
-                    <span
-                      className="
-    px-2 py-1 rounded-md
-    text-xs border capitalize
-    bg-[#faf7f2]
-    border-[#e7dcc7]
-    text-gray-700
-  "
-                    >
-                      {product.type}
-                    </span>
-                  </td>
-
-                  {/* ACTIONS */}
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => {
-                          setEditingProduct(product);
-
-                          setFormData({
-                            name: product.name,
-                            price: product.price,
-                            category: product.category,
-                            stock: product.stock,
-                            description: product.description,
-                            image: product.image,
-                            gender: product.gender || "female",
-                            sizes: product.sizes || [],
-                            discount: product.discount || "",
-                            type: product.type || "silver",
-                            care: product.care,
-                            stone: product.stone,
-                            material: product.material,
-                          });
-
-                          setDrawerOpen(true);
-                        }}
-                        className="
-                        w-10 h-10 rounded-xl
-                        bg-[#faf7f2]
-                        flex items-center justify-center
-                        hover:bg-[#f3ecdf]
-                        transition
-                      "
-                      >
-                        <Pencil size={18} />
-                      </button>
-
-                      <button
-                        onClick={() => {
-                          setDeleteModal(true);
-                          setProductToDelete(product._id);
-                        }}
-                        className="
-                        w-10 h-10 rounded-xl
-                        bg-red-50 text-red-600
-                        flex items-center justify-center
-                        hover:bg-red-100
-                        transition
-                      "
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
       {/* RIGHT DRAWER */}
       {drawerOpen && (
         <div className="fixed inset-0 z-50 bg-black/30 flex justify-end">
-          <div
-            className="
-               w-[80vw] sm:w-[420px]
-              h-full
-              bg-white
-              shadow-2xl
-              p-6
-              overflow-y-auto
-            "
-          >
-            {/* HEADER */}
-            <div className="flex items-center justify-between mb-8">
+          <div className="w-[80vw] sm:w-[420px] h-full bg-white shadow-2xl p-6 overflow-y-auto">
+            {/* DRAWER HEADER */}
+            <div className="sticky top-0 bg-white border-b border-[#f0ebe2] pb-4 mb-6 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
-                  <Package size={22} />
+                <h2 className="font-luxury text-2xl text-gray-800 flex items-center gap-2">
+                  <Package size={20} />
                   {editingProduct ? "Edit Product" : "Add Product"}
                 </h2>
-
-                <p className="text-sm text-gray-500 mt-1">
-                  Create a new jewelry product
+                <p className="text-sm text-gray-400 font-cormorant mt-0.5">
+                  {editingProduct
+                    ? "Update product details"
+                    : "Create a new jewelry product"}
                 </p>
               </div>
-
               <button
                 onClick={() => {
-                  (setDrawerOpen(false), setDuplicateError(null));
+                  setDrawerOpen(false);
+                  setDuplicateError(null);
                   if (editingProduct) {
                     setFormData({
                       name: "",
@@ -958,13 +658,9 @@ const Products = () => {
                     });
                   }
                 }}
-                className="
-                  w-10 h-10 rounded-xl
-                  hover:bg-[#faf7f2]
-                  flex items-center justify-center
-                "
+                className="w-9 h-9 rounded-2xl border border-[#e7dcc7] flex items-center justify-center hover:bg-[#faf7f2] transition"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
 
@@ -973,19 +669,7 @@ const Products = () => {
               {/* IMAGE */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Product Image*</p>
-
-                <label
-                  className="
-                    h-[180px]
-                    border-2 border-dashed border-[#e7dcc7]
-                    rounded-3xl
-                    flex flex-col items-center justify-center
-                    cursor-pointer
-                    hover:bg-[#faf7f2]
-                    transition
-                    overflow-hidden
-                  "
-                >
+                <label className="h-[180px] border-2 border-dashed border-[#e7dcc7] rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:bg-[#faf7f2] transition overflow-hidden">
                   {formData.imagePreview || formData.image ? (
                     <img
                       src={formData.imagePreview || formData.image}
@@ -1000,20 +684,17 @@ const Products = () => {
                       </p>
                     </>
                   )}
-
                   <input
                     type="file"
                     hidden
                     onChange={(e) => {
                       const file = e.target.files[0];
                       if (!file) return;
-
                       setFormData((prev) => ({
                         ...prev,
                         imageFile: file,
                         imagePreview: URL.createObjectURL(file),
                       }));
-
                       clearError("image");
                     }}
                   />
@@ -1026,26 +707,15 @@ const Products = () => {
               {/* NAME */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Product Name*</p>
-
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => {
                     clearError("name");
                     setDuplicateError("");
-
-                    setFormData({
-                      ...formData,
-                      name: e.target.value,
-                    });
+                    setFormData({ ...formData, name: e.target.value });
                   }}
-                  className="
-                    w-full h-[50px]
-                    border border-[#e7dcc7]
-                    rounded-2xl px-4
-                    outline-none
-                    bg-[#faf7f2]
-                  "
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
                 {errors.name && (
                   <p className="text-red-500 text-sm mt-2">{errors.name}</p>
@@ -1055,7 +725,6 @@ const Products = () => {
               {/* PRICE */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Price*</p>
-
                 <input
                   type="text"
                   value={
@@ -1065,23 +734,12 @@ const Products = () => {
                   }
                   onChange={(e) => {
                     clearError("price");
-
                     const rawValue = e.target.value.replace(/,/g, "");
-
                     if (/^\d*$/.test(rawValue)) {
-                      setFormData({
-                        ...formData,
-                        price: rawValue,
-                      });
+                      setFormData({ ...formData, price: rawValue });
                     }
                   }}
-                  className="
-    w-full h-[50px]
-    border border-[#e7dcc7]
-    rounded-2xl px-4
-    outline-none
-    bg-[#faf7f2]
-  "
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
                 {errors.price && (
                   <p className="text-red-500 text-sm mt-2">{errors.price}</p>
@@ -1091,27 +749,15 @@ const Products = () => {
               {/* CATEGORY */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Category*</p>
-
                 <select
                   value={formData.category}
                   onChange={(e) => {
                     clearError("category");
-
-                    setFormData({
-                      ...formData,
-                      category: e.target.value,
-                    });
+                    setFormData({ ...formData, category: e.target.value });
                   }}
-                  className="
-                    w-full h-[50px]
-                    border border-[#e7dcc7]
-                    rounded-2xl px-4
-                    outline-none
-                    bg-[#faf7f2]
-                  "
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 >
                   <option value="">Select Category</option>
-
                   {categories.map((cat) => (
                     <option key={cat._id}>{cat.name}</option>
                   ))}
@@ -1124,34 +770,18 @@ const Products = () => {
               {/* STOCK */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Stock*</p>
-
                 <input
                   type="number"
                   min="0"
                   value={formData.stock}
                   onChange={(e) => {
                     clearError("stock");
-
-                    if (e.target.value === "") {
-                      setFormData({
-                        ...formData,
-                        stock: "",
-                      });
-                      return;
-                    }
-
                     setFormData({
                       ...formData,
-                      stock: e.target.value,
+                      stock: e.target.value === "" ? "" : e.target.value,
                     });
                   }}
-                  className="
-                    w-full h-[50px]
-                    border border-[#e7dcc7]
-                    rounded-2xl px-4
-                    outline-none
-                    bg-[#faf7f2]
-                  "
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
                 {errors.stock && (
                   <p className="text-red-500 text-sm mt-2">{errors.stock}</p>
@@ -1161,10 +791,9 @@ const Products = () => {
               {/* DISCOUNT */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">
-                  Discount %
+                  Discount %{" "}
                   <span className="text-gray-400 ml-1">(Optional)</span>
                 </p>
-
                 <input
                   type="number"
                   placeholder="10"
@@ -1173,39 +802,21 @@ const Products = () => {
                   value={formData.discount}
                   onChange={(e) => {
                     const value = e.target.value;
-
                     if (value === "") {
-                      setFormData({
-                        ...formData,
-                        discount: "",
-                      });
+                      setFormData({ ...formData, discount: "" });
                       return;
                     }
-
                     const num = Number(value);
-
-                    if (num >= 0 && num <= 100) {
-                      setFormData({
-                        ...formData,
-                        discount: num,
-                      });
-                    }
+                    if (num >= 0 && num <= 100)
+                      setFormData({ ...formData, discount: num });
                   }}
-                  className="
-    w-full h-[50px]
-    border border-[#e7dcc7]
-    rounded-2xl px-4
-    outline-none
-    bg-[#faf7f2]
-  "
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
               </div>
 
               {/* SIZES */}
-
               <div>
                 <p className="text-sm text-gray-500 mb-2">Add Sizes</p>
-
                 <input
                   type="text"
                   placeholder="16mm,17mm,19mm"
@@ -1215,31 +826,17 @@ const Products = () => {
                       ...formData,
                       sizes: e.target.value
                         .split(",")
-                        .map((size) => size.trim())
-                        .filter((size) => size !== ""),
+                        .map((s) => s.trim())
+                        .filter((s) => s !== ""),
                     });
                   }}
-                  className="
-        w-full h-[50px]
-        border border-[#e7dcc7]
-        rounded-2xl px-4
-        outline-none
-        bg-[#faf7f2]
-      "
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
-
-                {/* SIZE PREVIEW */}
                 <div className="flex flex-wrap gap-2 mt-3">
                   {formData.sizes.map((size, index) => (
                     <div
                       key={index}
-                      className="
-            px-3 py-1
-            rounded-xl
-            bg-[#faf7f2]
-            border border-[#e7dcc7]
-            text-sm text-gray-700
-          "
+                      className="px-3 py-1 rounded-xl bg-[#faf7f2] border border-[#e7dcc7] text-sm text-gray-700"
                     >
                       {size}
                     </div>
@@ -1250,82 +847,48 @@ const Products = () => {
               {/* GENDER */}
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">Gender</p>
-
                 <div className="flex gap-3">
-                  {/* MALE */}
                   <button
                     type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        gender: "male",
-                      })
-                    }
-                    className={`
-        flex-1 h-[52px]
-        rounded-2xl border
-        flex items-center justify-center
-        transition
-        ${
-          formData.gender === "male"
-            ? "bg-blue-500 text-white border-blue-500 shadow-md"
-            : "border-[#e7dcc7] bg-white text-gray-600"
-        }
-      `}
+                    onClick={() => setFormData({ ...formData, gender: "male" })}
+                    className={`flex-1 h-[52px] rounded-2xl border flex items-center justify-center transition ${
+                      formData.gender === "male"
+                        ? "bg-blue-500 text-white border-blue-500 shadow-md"
+                        : "border-[#e7dcc7] bg-white text-gray-600"
+                    }`}
                   >
                     <Mars size={22} />
                   </button>
-
-                  {/* FEMALE */}
                   <button
                     type="button"
                     onClick={() =>
-                      setFormData({
-                        ...formData,
-                        gender: "female",
-                      })
+                      setFormData({ ...formData, gender: "female" })
                     }
-                    className={`
-        flex-1 h-[52px]
-        rounded-2xl border
-        flex items-center justify-center
-        transition
-        ${
-          formData.gender === "female"
-            ? "bg-pink-500 text-white border-pink-500 shadow-md "
-            : "border-[#e7dcc7] bg-white text-gray-600"
-        }
-      `}
+                    className={`flex-1 h-[52px] rounded-2xl border flex items-center justify-center transition ${
+                      formData.gender === "female"
+                        ? "bg-pink-500 text-white border-pink-500 shadow-md"
+                        : "border-[#e7dcc7] bg-white text-gray-600"
+                    }`}
                   >
                     <Venus size={22} />
                   </button>
                 </div>
               </div>
-              {/* Type */}
+
+              {/* TYPE */}
               <div className="space-y-2">
                 <p className="text-sm text-gray-600">Product Type</p>
-
                 <div className="flex gap-3">
                   {["gold", "silver", "artificial"].map((type) => (
                     <button
                       key={type}
                       type="button"
-                      onClick={() =>
-                        setFormData({
-                          ...formData,
-                          type,
-                        })
-                      }
-                      className={`
-          flex-1 h-[50px]
-          rounded-2xl border capitalize
-          transition
-          ${
-            formData.type === type
-              ? "bg-black text-white border-black shadow-md"
-              : "border-[#e7dcc7] bg-white"
-          }
-        `}
+                      onClick={() => setFormData({ ...formData, type })}
+                      className={`flex-1 h-[50px] rounded-2xl border capitalize transition ${
+                        formData.type === type
+                          ? "bg-black text-white border-black shadow-md"
+                          : "border-[#e7dcc7] bg-white"
+                      }`}
                     >
                       {type}
                     </button>
@@ -1333,120 +896,56 @@ const Products = () => {
                 </div>
               </div>
 
-              {/* stone */}
+              {/* STONE */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Stone</p>
-
                 <input
                   type="text"
                   value={formData.stone}
-                  onChange={(e) => {
-                    if (e.target.value === "") {
-                      setFormData({
-                        ...formData,
-                        stone: "",
-                      });
-                      return;
-                    }
-
-                    setFormData({
-                      ...formData,
-                      stone: e.target.value,
-                    });
-                  }}
-                  className="
-                    w-full h-[50px]
-                    border border-[#e7dcc7]
-                    rounded-2xl px-4
-                    outline-none
-                    bg-[#faf7f2]
-                  "
+                  onChange={(e) =>
+                    setFormData({ ...formData, stone: e.target.value })
+                  }
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
               </div>
-              {/* material */}
+
+              {/* MATERIAL */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Material</p>
-
                 <input
                   type="text"
                   value={formData.material}
-                  onChange={(e) => {
-                    if (e.target.value === "") {
-                      setFormData({
-                        ...formData,
-                        material: "",
-                      });
-                      return;
-                    }
-
-                    setFormData({
-                      ...formData,
-                      material: e.target.value,
-                    });
-                  }}
-                  className="
-                    w-full h-[50px]
-                    border border-[#e7dcc7]
-                    rounded-2xl px-4
-                    outline-none
-                    bg-[#faf7f2]
-                  "
+                  onChange={(e) =>
+                    setFormData({ ...formData, material: e.target.value })
+                  }
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
               </div>
-              {/* care */}
+
+              {/* CARE */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Care</p>
-
                 <input
                   type="text"
                   value={formData.care}
-                  onChange={(e) => {
-                    if (e.target.value === "") {
-                      setFormData({
-                        ...formData,
-                        care: "",
-                      });
-                      return;
-                    }
-
-                    setFormData({
-                      ...formData,
-                      care: e.target.value,
-                    });
-                  }}
-                  className="
-                    w-full h-[50px]
-                    border border-[#e7dcc7]
-                    rounded-2xl px-4
-                    outline-none
-                    bg-[#faf7f2]
-                  "
+                  onChange={(e) =>
+                    setFormData({ ...formData, care: e.target.value })
+                  }
+                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
                 />
               </div>
 
               {/* DESCRIPTION */}
               <div>
                 <p className="text-sm text-gray-500 mb-2">Description*</p>
-
                 <textarea
                   rows="5"
                   value={formData.description}
                   onChange={(e) => {
                     clearError("description");
-
-                    setFormData({
-                      ...formData,
-                      description: e.target.value,
-                    });
+                    setFormData({ ...formData, description: e.target.value });
                   }}
-                  className="
-                    w-full
-                    border border-[#e7dcc7]
-                    rounded-2xl p-4
-                    outline-none
-                    bg-[#faf7f2]
-                    resize-none
-                  "
+                  className="w-full border border-[#e7dcc7] rounded-2xl p-4 outline-none bg-[#faf7f2] resize-none"
                 />
                 {errors.description && (
                   <p className="text-red-500 text-sm mt-2">
@@ -1454,6 +953,7 @@ const Products = () => {
                   </p>
                 )}
               </div>
+
               {DuplicateError && (
                 <p className="text-red-500 text-sm mt-2">{DuplicateError}</p>
               )}
@@ -1487,26 +987,14 @@ const Products = () => {
                       });
                     }
                   }}
-                  className="
-                    flex-1 h-[50px]
-                    rounded-2xl
-                    border border-[#e7dcc7]
-                    text-gray-700
-                  "
+                  className="flex-1 h-[50px] rounded-2xl border border-[#e7dcc7] text-gray-700 hover:bg-[#faf7f2] transition"
                 >
                   Cancel
                 </button>
-
                 <button
                   onClick={handleAddProduct}
                   disabled={saving || (editingProduct && !hasChanges)}
-                  className="
-    flex-1 h-[50px]
-    rounded-2xl
-    bg-primary
-    text-white
-    disabled:opacity-50
-  "
+                  className="flex-1 h-[50px] rounded-2xl bg-primary text-white disabled:opacity-50 hover:opacity-90 transition"
                 >
                   {saving
                     ? editingProduct
@@ -1521,55 +1009,17 @@ const Products = () => {
           </div>
         </div>
       )}
+
       {/* DELETE MODAL */}
       {deleteModal && (
-        <div className="fixed inset-0 z-[1000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div
-            className="
-              w-full max-w-sm
-              bg-white rounded-3xl
-              p-6 shadow-2xl
-            "
-          >
-            <h2 className="text-xl font-semibold text-gray-800">
-              Delete Product
-            </h2>
-
-            <p className="text-gray-500 mt-2">
-              Are you sure you want to delete this product?
-            </p>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                disabled={deleting}
-                onClick={() => {
-                  setDeleteModal(false);
-                  setProductToDelete(null);
-                }}
-                className="
-                  flex-1 h-[48px]
-                  rounded-2xl
-                  border border-[#e7dcc7]
-                "
-              >
-                Cancel
-              </button>
-
-              <button
-                disabled={deleting}
-                onClick={handleDelete}
-                className="
-                  flex-1 h-[48px]
-                  rounded-2xl
-                  bg-red-500 text-white
-                  disabled:opacity-50
-                "
-              >
-                {deleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteModal
+          onConfirm={handleDelete}
+          onCancel={() => {
+            setDeleteModal(false);
+            setProductToDelete(null);
+          }}
+          deleting={deleting}
+        />
       )}
     </div>
   );

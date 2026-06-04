@@ -7,6 +7,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  Mail,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -16,6 +17,7 @@ const links = [
   { name: "Products", path: "/admin/products", icon: Package },
   { name: "Customers", path: "/admin/customers", icon: Users },
   { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
+  { name: "Messages", path: "/admin/messages", icon: Mail },
   { name: "Settings", path: "/admin/settings", icon: Settings },
 ];
 

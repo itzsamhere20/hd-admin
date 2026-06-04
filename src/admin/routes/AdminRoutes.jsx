@@ -10,6 +10,7 @@ import Orders from "../pages/Orders";
 import Customers from "../pages/Customers";
 import Analytics from "../pages/Analytics";
 import Settings from "../pages/settings/Settings";
+import Messages from "../pages/Messages";
 // Products Routes
 import ProductHome from "../pages/products/ProductHome";
 import Products from "../pages/products/pages/Products";
@@ -26,7 +27,7 @@ import FAQSettings from "../pages/settings/pages/FAQSettings";
 //       store setting  pages----------
 import LandingSettings from "../pages/settings/pages/StoreSettings/pages/LandingSettings";
 import HeroSettings from "../pages/settings/pages/StoreSettings/pages/HeroSettings";
-import HomepageCategoriesSettings from "../pages/settings/pages/StoreSettings/pages/CategoriesSetting";
+
 import SliderSettings from "../pages/settings/pages/StoreSettings/pages/SliderSettings";
 import ContactSettings from "../pages/settings/pages/StoreSettings/pages/ContactSettings";
 import OwnerSettings from "../pages/settings/pages/StoreSettings/pages/OwnerSettings";
@@ -63,6 +64,8 @@ const AdminRoutes = () => {
           <Route path="products/list" element={<Products />} />
           <Route path="products/categories" element={<Categories />} />
 
+          <Route path="messages" element={<Messages />} />
+
           {/* ------------setting page royutes--------------- */}
           <Route path="settings" element={<Settings />} />
 
@@ -82,11 +85,6 @@ const AdminRoutes = () => {
           <Route path="settings/store/landing" element={<LandingSettings />} />
 
           <Route path="settings/store/hero" element={<HeroSettings />} />
-
-          <Route
-            path="settings/store/categories"
-            element={<HomepageCategoriesSettings />}
-          />
 
           <Route path="settings/store/slider" element={<SliderSettings />} />
 
