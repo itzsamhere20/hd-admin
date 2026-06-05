@@ -12,6 +12,8 @@ import {
   Phone,
   Landmark,
   ArrowLeft,
+  Truck,
+  CircleHelp,
 } from "lucide-react";
 
 import { Link, useNavigate } from "react-router-dom";
@@ -57,6 +59,19 @@ const storeSections = [
     desc: "Manage payment and WhatsApp details",
     icon: Landmark,
     path: "/admin/settings/store/bank",
+  },
+  {
+    title: "Shipping Settings",
+    desc: "Free shipping & delivery controls",
+    icon: Truck,
+    path: "/admin/settings/store/shipping",
+  },
+
+  {
+    title: "FAQ Management",
+    desc: "Manage customer FAQs",
+    icon: CircleHelp,
+    path: "/admin/settings/store/faqs",
   },
 ];
 

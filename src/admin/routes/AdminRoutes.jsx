@@ -17,12 +17,9 @@ import Products from "../pages/products/pages/Products";
 import Categories from "../pages/products/pages/Categories";
 
 // settings sub-pages
-import SecuritySettings from "../pages/settings/pages/SecuritySettings";
+
 import ProfileSettings from "../pages/settings/pages/ProfileSettings";
 import StoreSettings from "../pages/settings/pages/StoreSettings/StoreSettings";
-import ShippingSettings from "../pages/settings/pages/ShippingSettings";
-import PromoSettings from "../pages/settings/pages/PromoSettings";
-import FAQSettings from "../pages/settings/pages/FAQSettings";
 
 //       store setting  pages----------
 import LandingSettings from "../pages/settings/pages/StoreSettings/pages/LandingSettings";
@@ -32,6 +29,8 @@ import SliderSettings from "../pages/settings/pages/StoreSettings/pages/SliderSe
 import ContactSettings from "../pages/settings/pages/StoreSettings/pages/ContactSettings";
 import OwnerSettings from "../pages/settings/pages/StoreSettings/pages/OwnerSettings";
 import BankSettings from "../pages/settings/pages/StoreSettings/pages/BankSettings";
+import ShippingSettings from "../pages/settings/pages/StoreSettings/pages/ShippingSettings";
+import FAQSettings from "../pages/settings/pages/StoreSettings/pages/FAQSettings";
 
 import { Toaster } from "react-hot-toast";
 const AdminRoutes = () => {
@@ -69,17 +68,9 @@ const AdminRoutes = () => {
           {/* ------------setting page royutes--------------- */}
           <Route path="settings" element={<Settings />} />
 
-          <Route path="settings/security" element={<SecuritySettings />} />
-
           <Route path="settings/profile" element={<ProfileSettings />} />
 
           <Route path="settings/store" element={<StoreSettings />} />
-
-          <Route path="settings/shipping" element={<ShippingSettings />} />
-
-          <Route path="settings/promos" element={<PromoSettings />} />
-
-          <Route path="settings/faqs" element={<FAQSettings />} />
 
           {/* ----------------------- Store settings pages----------------------- */}
           <Route path="settings/store/landing" element={<LandingSettings />} />
@@ -93,6 +84,12 @@ const AdminRoutes = () => {
           <Route path="settings/store/owner" element={<OwnerSettings />} />
 
           <Route path="settings/store/bank" element={<BankSettings />} />
+          <Route
+            path="settings/store/shipping"
+            element={<ShippingSettings />}
+          />
+
+          <Route path="settings/store/faqs" element={<FAQSettings />} />
         </Route>
 
         {/* fallback */}

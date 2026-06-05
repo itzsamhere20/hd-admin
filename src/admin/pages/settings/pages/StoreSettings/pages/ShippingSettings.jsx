@@ -12,8 +12,8 @@ import {
   BadgeDollarSign,
 } from "lucide-react";
 
-import api from "../../../api/api";
-import SettingsLayout from "../components/SettingsLayout";
+import api from "../../../../../api/api";
+import SettingsLayout from "../../../components/SettingsLayout";
 
 const ShippingSettings = () => {
   /* =========================================================
@@ -41,7 +41,7 @@ const ShippingSettings = () => {
     try {
       setLoading(true);
 
-      const res = await api.get("/settings/shipping");
+      const res = await api.get("/settings/store/shipping");
 
       setThreshold(res.data.freeShippingThreshold || 0);
 
@@ -60,7 +60,7 @@ const ShippingSettings = () => {
     try {
       setSaving(true);
 
-      await api.put("/settings/shipping", {
+      await api.put("/settings/store/shipping", {
         freeShippingThreshold: Number(threshold),
 
         shippingFee: Number(shippingFee),

@@ -1,12 +1,4 @@
-import {
-  Shield,
-  Store,
-  Truck,
-  BadgePercent,
-  CircleHelp,
-  ChevronRight,
-  User,
-} from "lucide-react";
+import { Store, ChevronRight, User } from "lucide-react";
 
 import { Link } from "react-router-dom";
 
@@ -17,35 +9,12 @@ const settingsItems = [
     icon: User,
     path: "/admin/settings/profile",
   },
-  {
-    title: "Admin Security",
-    desc: "Password & authentication settings",
-    icon: Shield,
-    path: "/admin/settings/security",
-  },
+
   {
     title: "Store Information",
     desc: "Manage email, phone & address",
     icon: Store,
     path: "/admin/settings/store",
-  },
-  {
-    title: "Shipping Settings",
-    desc: "Free shipping & delivery controls",
-    icon: Truck,
-    path: "/admin/settings/shipping",
-  },
-  {
-    title: "Promo Codes",
-    desc: "Discounts and offers",
-    icon: BadgePercent,
-    path: "/admin/settings/promos",
-  },
-  {
-    title: "FAQ Management",
-    desc: "Manage customer FAQs",
-    icon: CircleHelp,
-    path: "/admin/settings/faqs",
   },
 ];
 

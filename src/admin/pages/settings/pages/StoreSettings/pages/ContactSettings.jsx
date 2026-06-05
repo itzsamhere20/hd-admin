@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Phone, Mail, Save, Loader2, Trash2 } from "lucide-react";
+import { FaFacebook, FaInstagram } from "react-icons/fa";
 import toast from "react-hot-toast";
 
 import SettingsLayout from "../../../components/SettingsLayout";
@@ -8,8 +9,9 @@ import api from "../../../../../api/api";
 const initialState = {
   phone: "",
   email: "",
+  facebook: "",
+  instagram: "",
 };
-
 const ContactSettings = () => {
   const [loading, setLoading] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -52,8 +54,9 @@ const ContactSettings = () => {
       const payload = {
         phone: form.phone || "",
         email: form.email || "",
+        facebook: form.facebook || "",
+        instagram: form.instagram || "",
       };
-
       await api.put("/settings/store/contact", payload);
 
       setForm(payload);
@@ -119,7 +122,37 @@ const ContactSettings = () => {
               className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
             />
           </div>
+          {/* ----------facebook */}
+          <div className="relative">
+            <FaFacebook
+              size={18}
+              className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400"
+            />
 
+            <input
+              name="facebook"
+              value={form.facebook}
+              onChange={handleChange}
+              placeholder="Facebook Profile URL"
+              className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
+            />
+          </div>
+          {/* ----------instagram------- */}
+
+          <div className="relative">
+            <FaInstagram
+              size={18}
+              className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400"
+            />
+
+            <input
+              name="instagram"
+              value={form.instagram}
+              onChange={handleChange}
+              placeholder="Instagram Profile URL"
+              className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
+            />
+          </div>
           {/* BUTTONS */}
           <div className="flex gap-3">
             {/* SAVE */}
