@@ -28,16 +28,33 @@ export default function Messages() {
 
   /* ── FETCH ── */
   useEffect(() => {
-    (async () => {
+    let isMounted = true;
+
+    const fetchMessages = async () => {
       try {
         const res = await api.get("/messages");
-        setMessages(res.data || []);
+        if (isMounted) {
+          setMessages(res.data || []);
+          setLoading(false);
+        }
       } catch (err) {
-        toast.error("Failed to load messages");
-      } finally {
-        setLoading(false);
+        if (isMounted) {
+          toast.error("Failed to load messages");
+          setLoading(false);
+        }
       }
-    })();
+    };
+
+    // initial fetch
+    fetchMessages();
+
+    // polling every 10s (adjust if needed)
+    const interval = setInterval(fetchMessages, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   /* ── MARK AS READ ── */
@@ -573,7 +590,7 @@ function StatCard({ icon, title, value, sub, accent }) {
       className={`border rounded-3xl p-5 flex items-center gap-4 ${accent && value > 0 ? "bg-amber-50 border-amber-200" : "bg-white border-[#e7dcc7]"}`}
     >
       <div
-        className={`w-11 h-11 rounded-2xl border flex items-center justify-center shrink-0 ${accent && value > 0 ? "bg-amber-100 border-amber-200" : "bg-[#f7f4ef] border-[#e7dcc7]"}`}
+        className={`w-11 h-11 rounded-2xl border flex items-center justify-center shrink-0 text-primary/80 ${accent && value > 0 ? "bg-amber-100 border-amber-200" : "bg-[#f7f4ef] border-[#e7dcc7]"}`}
       >
         {icon}
       </div>

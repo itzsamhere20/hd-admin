@@ -19,7 +19,7 @@ import api from "../../../api/api";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-
+import { AnimatePresence, motion } from "framer-motion";
 /* =========================
    STAT CARD  (matches Orders)
 ========================= */
@@ -615,358 +615,40 @@ const Products = () => {
           ))}
         </div>
       )}
-
-      {/* RIGHT DRAWER */}
-      {drawerOpen && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex justify-end">
-          <div className="w-[80vw] sm:w-[420px] h-full bg-white shadow-2xl p-6 overflow-y-auto">
-            {/* DRAWER HEADER */}
-            <div className="sticky top-0 bg-white border-b border-[#f0ebe2] pb-4 mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="font-luxury text-2xl text-gray-800 flex items-center gap-2">
-                  <Package size={20} />
-                  {editingProduct ? "Edit Product" : "Add Product"}
-                </h2>
-                <p className="text-sm text-gray-400 font-cormorant mt-0.5">
-                  {editingProduct
-                    ? "Update product details"
-                    : "Create a new jewelry product"}
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  setDuplicateError(null);
-                  if (editingProduct) {
-                    setFormData({
-                      name: "",
-                      price: "",
-                      category: "",
-                      stock: "",
-                      description: "",
-                      image: "",
-                      imageFile: null,
-                      imagePreview: "",
-                      public_id: "",
-                      gender: "female",
-                      sizes: [],
-                      discount: "",
-                      type: "silver",
-                      material: "",
-                      care: "",
-                      stone: "",
-                    });
-                  }
-                }}
-                className="w-9 h-9 rounded-2xl border border-[#e7dcc7] flex items-center justify-center hover:bg-[#faf7f2] transition"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* FORM */}
-            <div className="space-y-5">
-              {/* IMAGE */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Product Image*</p>
-                <label className="h-[180px] border-2 border-dashed border-[#e7dcc7] rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:bg-[#faf7f2] transition overflow-hidden">
-                  {formData.imagePreview || formData.image ? (
-                    <img
-                      src={formData.imagePreview || formData.image}
-                      alt=""
-                      className="w-full h-full object-contain"
-                    />
-                  ) : (
-                    <>
-                      <Upload size={28} className="text-gray-400" />
-                      <p className="text-sm text-gray-500 mt-2">
-                        Upload Product Image
-                      </p>
-                    </>
-                  )}
-                  <input
-                    type="file"
-                    hidden
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (!file) return;
-                      setFormData((prev) => ({
-                        ...prev,
-                        imageFile: file,
-                        imagePreview: URL.createObjectURL(file),
-                      }));
-                      clearError("image");
-                    }}
-                  />
-                  {errors.image && (
-                    <p className="text-red-500 text-sm mt-2">{errors.image}</p>
-                  )}
-                </label>
-              </div>
-
-              {/* NAME */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Product Name*</p>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => {
-                    clearError("name");
-                    setDuplicateError("");
-                    setFormData({ ...formData, name: e.target.value });
-                  }}
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-2">{errors.name}</p>
-                )}
-              </div>
-
-              {/* PRICE */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Price*</p>
-                <input
-                  type="text"
-                  value={
-                    formData.price
-                      ? Number(formData.price).toLocaleString()
-                      : ""
-                  }
-                  onChange={(e) => {
-                    clearError("price");
-                    const rawValue = e.target.value.replace(/,/g, "");
-                    if (/^\d*$/.test(rawValue)) {
-                      setFormData({ ...formData, price: rawValue });
-                    }
-                  }}
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-                {errors.price && (
-                  <p className="text-red-500 text-sm mt-2">{errors.price}</p>
-                )}
-              </div>
-
-              {/* CATEGORY */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Category*</p>
-                <select
-                  value={formData.category}
-                  onChange={(e) => {
-                    clearError("category");
-                    setFormData({ ...formData, category: e.target.value });
-                  }}
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
-                {errors.category && (
-                  <p className="text-red-500 text-sm mt-2">{errors.category}</p>
-                )}
-              </div>
-
-              {/* STOCK */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Stock*</p>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.stock}
-                  onChange={(e) => {
-                    clearError("stock");
-                    setFormData({
-                      ...formData,
-                      stock: e.target.value === "" ? "" : e.target.value,
-                    });
-                  }}
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-                {errors.stock && (
-                  <p className="text-red-500 text-sm mt-2">{errors.stock}</p>
-                )}
-              </div>
-
-              {/* DISCOUNT */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">
-                  Discount %{" "}
-                  <span className="text-gray-400 ml-1">(Optional)</span>
-                </p>
-                <input
-                  type="number"
-                  placeholder="10"
-                  min="0"
-                  max="100"
-                  value={formData.discount}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === "") {
-                      setFormData({ ...formData, discount: "" });
-                      return;
-                    }
-                    const num = Number(value);
-                    if (num >= 0 && num <= 100)
-                      setFormData({ ...formData, discount: num });
-                  }}
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-              </div>
-
-              {/* SIZES */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Add Sizes</p>
-                <input
-                  type="text"
-                  placeholder="16mm,17mm,19mm"
-                  defaultValue={formData.sizes.join(",")}
-                  onChange={(e) => {
-                    setFormData({
-                      ...formData,
-                      sizes: e.target.value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter((s) => s !== ""),
-                    });
-                  }}
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {formData.sizes.map((size, index) => (
-                    <div
-                      key={index}
-                      className="px-3 py-1 rounded-xl bg-[#faf7f2] border border-[#e7dcc7] text-sm text-gray-700"
-                    >
-                      {size}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* GENDER */}
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Gender</p>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, gender: "male" })}
-                    className={`flex-1 h-[52px] rounded-2xl border flex items-center justify-center transition ${
-                      formData.gender === "male"
-                        ? "bg-blue-500 text-white border-blue-500 shadow-md"
-                        : "border-[#e7dcc7] bg-white text-gray-600"
-                    }`}
-                  >
-                    <Mars size={22} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({ ...formData, gender: "female" })
-                    }
-                    className={`flex-1 h-[52px] rounded-2xl border flex items-center justify-center transition ${
-                      formData.gender === "female"
-                        ? "bg-pink-500 text-white border-pink-500 shadow-md"
-                        : "border-[#e7dcc7] bg-white text-gray-600"
-                    }`}
-                  >
-                    <Venus size={22} />
-                  </button>
-                </div>
-              </div>
-
-              {/* TYPE */}
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Product Type</p>
-                <div className="flex gap-3">
-                  {["gold", "silver", "artificial"].map((type) => (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, type })}
-                      className={`flex-1 h-[50px] rounded-2xl border capitalize transition ${
-                        formData.type === type
-                          ? "bg-black text-white border-black shadow-md"
-                          : "border-[#e7dcc7] bg-white"
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* STONE */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Stone</p>
-                <input
-                  type="text"
-                  value={formData.stone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, stone: e.target.value })
-                  }
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-              </div>
-
-              {/* MATERIAL */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Material</p>
-                <input
-                  type="text"
-                  value={formData.material}
-                  onChange={(e) =>
-                    setFormData({ ...formData, material: e.target.value })
-                  }
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-              </div>
-
-              {/* CARE */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Care</p>
-                <input
-                  type="text"
-                  value={formData.care}
-                  onChange={(e) =>
-                    setFormData({ ...formData, care: e.target.value })
-                  }
-                  className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
-                />
-              </div>
-
-              {/* DESCRIPTION */}
-              <div>
-                <p className="text-sm text-gray-500 mb-2">Description*</p>
-                <textarea
-                  rows="5"
-                  value={formData.description}
-                  onChange={(e) => {
-                    clearError("description");
-                    setFormData({ ...formData, description: e.target.value });
-                  }}
-                  className="w-full border border-[#e7dcc7] rounded-2xl p-4 outline-none bg-[#faf7f2] resize-none"
-                />
-                {errors.description && (
-                  <p className="text-red-500 text-sm mt-2">
-                    {errors.description}
+      <AnimatePresence>
+        {/* RIGHT DRAWER */}
+        {drawerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 bg-black/30 flex justify-end"
+          >
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{
+                duration: 0.35,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+              className="w-3/4 sm:w-[420px] h-full bg-white shadow-2xl p-6 overflow-y-auto"
+            >
+              {/* DRAWER HEADER */}
+              <div className="sticky top-0 bg-white border-b border-[#f0ebe2] pb-4 mb-6 flex items-center justify-between">
+                <div>
+                  <h2 className="font-luxury text-2xl text-gray-800 flex items-center gap-2">
+                    <Package size={20} />
+                    {editingProduct ? "Edit Product" : "Add Product"}
+                  </h2>
+                  <p className="text-sm text-gray-400 font-cormorant mt-0.5">
+                    {editingProduct
+                      ? "Update product details"
+                      : "Create a new jewelry product"}
                   </p>
-                )}
-              </div>
-
-              {DuplicateError && (
-                <p className="text-red-500 text-sm mt-2">{DuplicateError}</p>
-              )}
-              {editingProduct && !hasChanges && (
-                <p className="text-xs text-red-500 mt-2">
-                  No changes to update
-                </p>
-              )}
-
-              {/* BUTTONS */}
-              <div className="flex gap-3 pt-4">
+                </div>
                 <button
-                  disabled={saving}
                   onClick={() => {
                     setDrawerOpen(false);
                     setDuplicateError(null);
@@ -978,37 +660,377 @@ const Products = () => {
                         stock: "",
                         description: "",
                         image: "",
+                        imageFile: null,
+                        imagePreview: "",
+                        public_id: "",
                         gender: "female",
                         sizes: [],
-                        discount: 0,
+                        discount: "",
                         type: "silver",
                         material: "",
                         care: "",
+                        stone: "",
                       });
                     }
                   }}
-                  className="flex-1 h-[50px] rounded-2xl border border-[#e7dcc7] text-gray-700 hover:bg-[#faf7f2] transition"
+                  className="w-9 h-9 rounded-2xl border border-[#e7dcc7] flex items-center justify-center hover:bg-[#faf7f2] transition"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddProduct}
-                  disabled={saving || (editingProduct && !hasChanges)}
-                  className="flex-1 h-[50px] rounded-2xl bg-primary text-white disabled:opacity-50 hover:opacity-90 transition"
-                >
-                  {saving
-                    ? editingProduct
-                      ? "Updating..."
-                      : "Saving..."
-                    : editingProduct
-                      ? "Update Product"
-                      : "Save Product"}
+                  <X size={18} />
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+
+              {/* FORM */}
+              <div className="space-y-5">
+                {/* IMAGE */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Product Image*</p>
+                  <label className="h-[180px] border-2 border-dashed border-[#e7dcc7] rounded-3xl flex flex-col items-center justify-center cursor-pointer hover:bg-[#faf7f2] transition overflow-hidden">
+                    {formData.imagePreview || formData.image ? (
+                      <img
+                        src={formData.imagePreview || formData.image}
+                        alt=""
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <>
+                        <Upload size={28} className="text-gray-400" />
+                        <p className="text-sm text-gray-500 mt-2">
+                          Upload Product Image
+                        </p>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      hidden
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setFormData((prev) => ({
+                          ...prev,
+                          imageFile: file,
+                          imagePreview: URL.createObjectURL(file),
+                        }));
+                        clearError("image");
+                      }}
+                    />
+                    {errors.image && (
+                      <p className="text-red-500 text-sm mt-2">
+                        {errors.image}
+                      </p>
+                    )}
+                  </label>
+                </div>
+
+                {/* NAME */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Product Name*</p>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => {
+                      clearError("name");
+                      setDuplicateError("");
+                      setFormData({ ...formData, name: e.target.value });
+                    }}
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-2">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* PRICE */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Price*</p>
+                  <input
+                    type="text"
+                    value={
+                      formData.price
+                        ? Number(formData.price).toLocaleString()
+                        : ""
+                    }
+                    onChange={(e) => {
+                      clearError("price");
+                      const rawValue = e.target.value.replace(/,/g, "");
+                      if (/^\d*$/.test(rawValue)) {
+                        setFormData({ ...formData, price: rawValue });
+                      }
+                    }}
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                  {errors.price && (
+                    <p className="text-red-500 text-sm mt-2">{errors.price}</p>
+                  )}
+                </div>
+
+                {/* CATEGORY */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Category*</p>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => {
+                      clearError("category");
+                      setFormData({ ...formData, category: e.target.value });
+                    }}
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((cat) => (
+                      <option key={cat._id}>{cat.name}</option>
+                    ))}
+                  </select>
+                  {errors.category && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {errors.category}
+                    </p>
+                  )}
+                </div>
+
+                {/* STOCK */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Stock*</p>
+                  <input
+                    type="number"
+                    min="0"
+                    value={formData.stock}
+                    onChange={(e) => {
+                      clearError("stock");
+                      setFormData({
+                        ...formData,
+                        stock: e.target.value === "" ? "" : e.target.value,
+                      });
+                    }}
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                  {errors.stock && (
+                    <p className="text-red-500 text-sm mt-2">{errors.stock}</p>
+                  )}
+                </div>
+
+                {/* DISCOUNT */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Discount %{" "}
+                    <span className="text-gray-400 ml-1">(Optional)</span>
+                  </p>
+                  <input
+                    type="number"
+                    placeholder="10"
+                    min="0"
+                    max="100"
+                    value={formData.discount}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === "") {
+                        setFormData({ ...formData, discount: "" });
+                        return;
+                      }
+                      const num = Number(value);
+                      if (num >= 0 && num <= 100)
+                        setFormData({ ...formData, discount: num });
+                    }}
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                </div>
+
+                {/* SIZES */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Add Sizes</p>
+                  <input
+                    type="text"
+                    placeholder="16mm,17mm,19mm"
+                    defaultValue={formData.sizes.join(",")}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        sizes: e.target.value
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter((s) => s !== ""),
+                      });
+                    }}
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {formData.sizes.map((size, index) => (
+                      <div
+                        key={index}
+                        className="px-3 py-1 rounded-xl bg-[#faf7f2] border border-[#e7dcc7] text-sm text-gray-700"
+                      >
+                        {size}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* GENDER */}
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Gender</p>
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, gender: "male" })
+                      }
+                      className={`flex-1 h-[52px] rounded-2xl border flex items-center justify-center transition ${
+                        formData.gender === "male"
+                          ? "bg-blue-500 text-white border-blue-500 shadow-md"
+                          : "border-[#e7dcc7] bg-white text-gray-600"
+                      }`}
+                    >
+                      <Mars size={22} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, gender: "female" })
+                      }
+                      className={`flex-1 h-[52px] rounded-2xl border flex items-center justify-center transition ${
+                        formData.gender === "female"
+                          ? "bg-pink-500 text-white border-pink-500 shadow-md"
+                          : "border-[#e7dcc7] bg-white text-gray-600"
+                      }`}
+                    >
+                      <Venus size={22} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* TYPE */}
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Product Type</p>
+                  <div className="flex gap-3">
+                    {["gold", "silver", "artificial"].map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, type })}
+                        className={`flex-1 h-[50px] rounded-2xl border capitalize transition ${
+                          formData.type === type
+                            ? "bg-black text-white border-black shadow-md"
+                            : "border-[#e7dcc7] bg-white"
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* STONE */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Stone</p>
+                  <input
+                    type="text"
+                    value={formData.stone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, stone: e.target.value })
+                    }
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                </div>
+
+                {/* MATERIAL */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Material</p>
+                  <input
+                    type="text"
+                    value={formData.material}
+                    onChange={(e) =>
+                      setFormData({ ...formData, material: e.target.value })
+                    }
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                </div>
+
+                {/* CARE */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Care</p>
+                  <input
+                    type="text"
+                    value={formData.care}
+                    onChange={(e) =>
+                      setFormData({ ...formData, care: e.target.value })
+                    }
+                    className="w-full h-[50px] border border-[#e7dcc7] rounded-2xl px-4 outline-none bg-[#faf7f2]"
+                  />
+                </div>
+
+                {/* DESCRIPTION */}
+                <div>
+                  <p className="text-sm text-gray-500 mb-2">Description*</p>
+                  <textarea
+                    rows="5"
+                    value={formData.description}
+                    onChange={(e) => {
+                      clearError("description");
+                      setFormData({ ...formData, description: e.target.value });
+                    }}
+                    className="w-full border border-[#e7dcc7] rounded-2xl p-4 outline-none bg-[#faf7f2] resize-none"
+                  />
+                  {errors.description && (
+                    <p className="text-red-500 text-sm mt-2">
+                      {errors.description}
+                    </p>
+                  )}
+                </div>
+
+                {DuplicateError && (
+                  <p className="text-red-500 text-sm mt-2">{DuplicateError}</p>
+                )}
+                {editingProduct && !hasChanges && (
+                  <p className="text-xs text-red-500 mt-2">
+                    No changes to update
+                  </p>
+                )}
+
+                {/* BUTTONS */}
+                <div className="flex gap-3 pt-4">
+                  <button
+                    disabled={saving}
+                    onClick={() => {
+                      setDrawerOpen(false);
+                      setDuplicateError(null);
+                      if (editingProduct) {
+                        setFormData({
+                          name: "",
+                          price: "",
+                          category: "",
+                          stock: "",
+                          description: "",
+                          image: "",
+                          gender: "female",
+                          sizes: [],
+                          discount: 0,
+                          type: "silver",
+                          material: "",
+                          care: "",
+                        });
+                      }
+                    }}
+                    className="flex-1 h-[50px] rounded-2xl border border-[#e7dcc7] text-gray-700 hover:bg-[#faf7f2] transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleAddProduct}
+                    disabled={saving || (editingProduct && !hasChanges)}
+                    className="flex-1 h-[50px] rounded-2xl bg-primary text-white disabled:opacity-50 hover:opacity-90 transition"
+                  >
+                    {saving
+                      ? editingProduct
+                        ? "Updating..."
+                        : "Saving..."
+                      : editingProduct
+                        ? "Update Product"
+                        : "Save Product"}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* DELETE MODAL */}
       {deleteModal && (

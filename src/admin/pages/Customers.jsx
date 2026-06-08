@@ -47,19 +47,55 @@ export default function Customers() {
   });
 
   /* FETCH */
+  const fetchCustomers = async () => {
+    try {
+      const res = await api.get("/user/all");
+      setCustomers((prev) => {
+        const incoming = res.data || [];
+        const map = new Map(prev.map((c) => [c._id, c.isRead]));
+
+        return incoming.map((c) => ({
+          ...c,
+          isRead: map.get(c._id) ?? c.isRead,
+        }));
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load customers");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get("/user/all");
-        setCustomers(res.data || []);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load customers");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchCustomers();
   }, []);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchCustomers();
+    }, 15000); // 15s
+
+    return () => clearInterval(interval);
+  }, []);
+  // ------- isread helper---
+  const markAsRead = async (customer) => {
+    if (customer.isRead) {
+      setViewTarget(customer);
+      return;
+    }
+
+    try {
+      await api.put(`/user/${customer._id}/read`);
+
+      setCustomers((prev) =>
+        prev.map((c) => (c._id === customer._id ? { ...c, isRead: true } : c)),
+      );
+
+      setViewTarget({ ...customer, isRead: true });
+    } catch (err) {
+      console.log(err);
+      setViewTarget(customer);
+    }
+  };
 
   /* OPEN EDIT */
   const openEdit = (customer) => {
@@ -157,6 +193,9 @@ export default function Customers() {
   ).length;
   const incompleteCount = customers.filter((c) => !c.name || !c.phone).length;
 
+  // ----- new customer-count ----
+  const newCustomersCount = customers.filter((c) => !c.isRead).length;
+
   /* LOADING */
   if (loading) {
     return (
@@ -174,13 +213,22 @@ export default function Customers() {
   return (
     <div className="min-h-screen p-4 lg:p-8">
       {/* HEADER */}
-      <div className="mb-8">
-        <h1 className="font-luxury text-4xl lg:text-5xl text-gray-800 tracking-tight">
-          Customers
-        </h1>
-        <p className="font-cormorant text-xl text-gray-500 mt-1">
-          View and manage your customer base
-        </p>
+      <div className="mb-8 flex justify-between">
+        <div className="flex flex-col  gap-2">
+          <h1 className="font-luxury text-4xl lg:text-5xl text-gray-800 tracking-tight">
+            Customers
+          </h1>
+          <p className="font-cormorant text-xl text-gray-500 mt-1">
+            View and manage your customer base
+          </p>
+        </div>
+        <div className="flex items-center h-max gap-3 bg-gray-900 text-white text-sm font-semibold px-4 py-2 rounded-2xl shadow-sm self-end">
+          <span className="w-3 h-3 rounded-full bg-amber-400 animate-pulse" />
+
+          <div className="">
+            {customers.filter((c) => !c.isRead).length} new customers
+          </div>
+        </div>
       </div>
 
       {/* STAT CARDS */}
@@ -280,7 +328,7 @@ export default function Customers() {
           <div className="hidden lg:block bg-white border border-[#e7dcc7] rounded-3xl overflow-hidden">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#f0ebe2]">
+                <tr className="border-b border-[#f9f6f1]">
                   <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-widest">
                     Customer
                   </th>
@@ -321,7 +369,16 @@ export default function Customers() {
                       {/* NAME + EMAIL */}
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <Avatar name={customer.name} email={customer.email} />
+                          <div className="relative">
+                            <Avatar
+                              name={customer.name}
+                              email={customer.email}
+                            />
+
+                            {!customer.isRead && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 border-2 border-white" />
+                            )}
+                          </div>
                           <div>
                             <p className="font-medium text-gray-800 text-sm">
                               {customer.name || (
@@ -385,7 +442,7 @@ export default function Customers() {
                           <ActionBtn
                             icon={<Eye size={14} />}
                             title="View"
-                            onClick={() => setViewTarget(customer)}
+                            onClick={() => markAsRead(customer)}
                           />
                           <ActionBtn
                             icon={<Pencil size={14} />}
@@ -413,7 +470,7 @@ export default function Customers() {
               <MobileCard
                 key={customer._id}
                 customer={customer}
-                onView={setViewTarget}
+                onView={(customer) => markAsRead(customer)}
                 onEdit={openEdit}
                 onDelete={setDeleteTarget}
                 onWhatsApp={openWhatsApp}
@@ -480,7 +537,13 @@ function MobileCard({ customer, onView, onEdit, onDelete, onWhatsApp }) {
     <div className="bg-white border border-[#e7dcc7] rounded-3xl p-5">
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-center gap-3">
-          <Avatar name={customer.name} email={customer.email} />
+          <div className="relative">
+            <Avatar name={customer.name} email={customer.email} />
+
+            {!customer.isRead && (
+              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 border-2 border-white" />
+            )}
+          </div>
           <div>
             <p className="font-medium text-gray-800 text-[15px]">
               {customer.name || (

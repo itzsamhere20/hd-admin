@@ -20,11 +20,47 @@ const initialState = {
   whatsappNumber: "",
 };
 
+/* ── STYLE (same as ContactSettings) ── */
+const INPUT =
+  "w-full h-[50px] border border-[#e7dcc7] rounded-2xl pl-11 pr-4 outline-none bg-[#faf7f2] text-sm placeholder:text-gray-300 focus:border-gray-400 transition-colors";
+
+const LABEL = "text-xs text-gray-400 uppercase tracking-widest mb-2 block";
+
+/* ── ICON INPUT ── */
+const IconInput = ({
+  icon: Icon,
+  label,
+  name,
+  placeholder,
+  type = "text",
+  value,
+  onChange,
+}) => (
+  <div>
+    <label className={LABEL}>{label}</label>
+
+    <div className="relative">
+      <Icon
+        size={15}
+        className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none"
+      />
+
+      <input
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className={INPUT}
+      />
+    </div>
+  </div>
+);
+
 const BankSettings = () => {
   const [loading, setLoading] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-
   const [form, setForm] = useState(initialState);
 
   /* ================= FETCH ================= */
@@ -92,99 +128,101 @@ const BankSettings = () => {
       title="Bank Information"
       description="Manage payment information"
     >
-      <div className="bg-white border border-[#ece7df] rounded-md overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.04)]">
+      {/* OUTER CARD */}
+      <div className="bg-white border border-[#e7dcc7] rounded-3xl overflow-hidden w-full">
         {/* HEADER */}
-        <div className="px-7 py-6 border-b border-[#f1ebe3] flex items-center gap-4">
-          <Landmark size={24} className="text-primary" />
+        <div className="px-7 py-6 border-b border-[#e7dcc7] flex items-center gap-4">
+          <div className="w-10 h-10 rounded-2xl bg-[#f7f4ef] border border-[#e7dcc7] flex items-center justify-center text-gray-500 shrink-0">
+            <Landmark size={18} />
+          </div>
 
           <div>
-            <p className="text-[11px] tracking-[0.45em] uppercase text-neutral-400">
+            <p className="text-xs text-gray-400 uppercase tracking-widest">
               Payments
             </p>
-            <h2 className="mt-2 text-4xl font-cormorant">Bank Details</h2>
+            <h2 className="font-luxury text-2xl text-gray-800 mt-0.5">
+              Bank Details
+            </h2>
           </div>
         </div>
 
-        {/* CONTENT */}
-        <div className="p-7 space-y-6">
-          {/* BANK NAME */}
-          <div className="relative">
-            <Landmark className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              name="bankName"
-              value={form.bankName}
-              onChange={handleChange}
-              placeholder="Bank Name"
-              className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
-            />
-          </div>
+        {/* BODY */}
+        <div className="px-7 py-6">
+          {initialLoading ? (
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="w-8 h-8 rounded-full border-2 border-[#e7dcc7] border-t-gray-800 animate-spin" />
+              <p className="text-xs text-gray-400 uppercase tracking-widest">
+                Loading...
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <IconInput
+                icon={Landmark}
+                label="Bank Name"
+                name="bankName"
+                placeholder="Enter bank name"
+                value={form.bankName}
+                onChange={handleChange}
+              />
 
-          {/* ACCOUNT TITLE */}
-          <div className="relative">
-            <User2 className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              name="accountTitle"
-              value={form.accountTitle}
-              onChange={handleChange}
-              placeholder="Account Title"
-              className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
-            />
-          </div>
+              <IconInput
+                icon={User2}
+                label="Account Title"
+                name="accountTitle"
+                placeholder="Enter account title"
+                value={form.accountTitle}
+                onChange={handleChange}
+              />
 
-          {/* ACCOUNT NUMBER */}
-          <div className="relative">
-            <CreditCard className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              name="accountNumber"
-              value={form.accountNumber}
-              onChange={handleChange}
-              placeholder="Account Number"
-              className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
-            />
-          </div>
+              <IconInput
+                icon={CreditCard}
+                label="Account Number"
+                name="accountNumber"
+                placeholder="Enter account number"
+                value={form.accountNumber}
+                onChange={handleChange}
+              />
 
-          {/* WHATSAPP */}
-          <div className="relative">
-            <MessageCircle className="absolute left-5 top-1/2 -translate-y-1/2 text-neutral-400" />
-            <input
-              name="whatsappNumber"
-              value={form.whatsappNumber}
-              onChange={handleChange}
-              placeholder="WhatsApp Number"
-              className="w-full h-14 pl-14 pr-5 rounded-md border border-[#ece7df] outline-none focus:border-primary"
-            />
-          </div>
+              <IconInput
+                icon={MessageCircle}
+                label="WhatsApp Number"
+                name="whatsappNumber"
+                placeholder="+92 3XX XXXXXXX"
+                value={form.whatsappNumber}
+                onChange={handleChange}
+              />
 
-          {/* BUTTONS */}
-          <div className="flex gap-3">
-            {/* SAVE */}
-            <button
-              onClick={handleSave}
-              disabled={isDisabled}
-              className="h-14 px-8 bg-primary text-white uppercase tracking-[0.2em] text-sm flex items-center gap-2 disabled:opacity-50"
-            >
-              {loading ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  Saving
-                </>
-              ) : (
-                <>
-                  <Save size={18} />
-                  Save Information
-                </>
-              )}
-            </button>
+              {/* FOOTER BUTTONS */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={handleSave}
+                  disabled={isDisabled}
+                  className="flex-1 h-[50px] rounded-2xl bg-primary text-white text-sm font-medium hover:opacity-80 transition disabled:opacity-40 flex items-center justify-center gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      Save Bank Info
+                    </>
+                  )}
+                </button>
 
-            {/* CLEAR */}
-            <button
-              onClick={handleClear}
-              disabled={loading}
-              className="h-14 px-6 border border-[#ece7df] text-gray-600 uppercase tracking-[0.2em] text-sm"
-            >
-              <Trash2 size={16} />
-            </button>
-          </div>
+                <button
+                  onClick={handleClear}
+                  disabled={loading}
+                  className="h-[50px] px-5 rounded-2xl border border-[#e7dcc7] text-gray-500 hover:bg-[#faf7f2] transition disabled:opacity-40 flex items-center justify-center"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </SettingsLayout>

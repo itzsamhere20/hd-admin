@@ -124,8 +124,12 @@ export default function Analytics() {
     inRange.forEach((o) => {
       const d = new Date(o.createdAt);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
+
       if (monthMap[key]) {
-        monthMap[key].revenue += Number(o.totalAmount) || 0;
+        if (o.orderStatus === "DELIVERED") {
+          monthMap[key].revenue += Number(o.totalAmount) || 0;
+        }
+
         monthMap[key].orders += 1;
       }
     });
@@ -158,18 +162,25 @@ export default function Analytics() {
       value,
     }));
 
-    /* ── TOP PRODUCTS ── */
+    /* ── TOP PRODUCTS (DELIVERED ONLY) ── */
     const productMap = {};
+
     orders.forEach((o) => {
+      if (o.orderStatus !== "DELIVERED") return;
+
       o.items?.forEach((item) => {
         const key = item.name || "Unknown";
-        if (!productMap[key])
+
+        if (!productMap[key]) {
           productMap[key] = { name: key, qty: 0, revenue: 0 };
+        }
+
         productMap[key].qty += Number(item.quantity) || 1;
         productMap[key].revenue +=
           (Number(item.price) || 0) * (Number(item.quantity) || 1);
       });
     });
+
     const topProducts = Object.values(productMap)
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 6);
@@ -186,7 +197,11 @@ export default function Analytics() {
       .slice(0, 6);
 
     /* ── SUMMARY STATS ── */
-    const totalRevenue = orders.reduce(
+    const deliveredOrdersList = orders.filter(
+      (o) => o.orderStatus === "DELIVERED",
+    );
+
+    const totalRevenue = deliveredOrdersList.reduce(
       (a, b) => a + (Number(b.totalAmount) || 0),
       0,
     );
@@ -199,17 +214,14 @@ export default function Analytics() {
       const d = new Date(o.createdAt);
       return d >= prevCutoff && d < cutoff;
     });
-    const prevRevenue = prevRange.reduce(
-      (a, b) => a + (Number(b.totalAmount) || 0),
-      0,
-    );
+    const prevRevenue = prevRange
+      .filter((o) => o.orderStatus === "DELIVERED")
+      .reduce((a, b) => a + (Number(b.totalAmount) || 0), 0);
     const revenueChange = prevRevenue
       ? (((totalRevenue - prevRevenue) / prevRevenue) * 100).toFixed(1)
       : null;
+    const deliveredOrders = deliveredOrdersList.length;
 
-    const deliveredOrders = orders.filter(
-      (o) => o.orderStatus === "DELIVERED",
-    ).length;
     const cancelledOrders = orders.filter(
       (o) => o.orderStatus === "CANCELLED",
     ).length;

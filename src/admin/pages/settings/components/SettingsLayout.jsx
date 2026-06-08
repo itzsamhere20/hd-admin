@@ -37,7 +37,7 @@ const SettingsLayout = ({ title, description, children }) => {
       </div>
 
       {/* CONTENT CARD */}
-      <div className="bg-white w-full max-w-lg border border-[#e7dcc7] rounded-[32px] p-5 lg:p-8 -z-10">
+      <div className="bg-white w-full max-w-3xl border border-[#e7dcc7] rounded-[32px] p-5 lg:p-8 -z-10">
         {children}
       </div>
     </div>

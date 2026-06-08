@@ -119,10 +119,9 @@ export default function Dashboard() {
   }, []);
 
   /* DERIVED STATS */
-  const totalRevenue = orders.reduce(
-    (a, b) => a + (Number(b.totalAmount) || 0),
-    0,
-  );
+  const totalRevenue = orders
+    .filter((o) => o.orderStatus === "DELIVERED")
+    .reduce((a, b) => a + (Number(b.totalAmount) || 0), 0);
   const totalOrders = orders.length;
   const totalCustomers = customers.length;
   const totalProducts = products.length;
@@ -154,15 +153,19 @@ export default function Dashboard() {
       "Dec",
     ];
     const map = {};
-    orders.forEach((o) => {
+    const deliveredOrders = orders.filter((o) => o.orderStatus === "DELIVERED");
+
+    deliveredOrders.forEach((o) => {
       const d = new Date(o.createdAt);
       const key = `${d.getFullYear()}-${d.getMonth()}`;
+
       if (!map[key])
         map[key] = {
           month: months[d.getMonth()],
           sales: 0,
           year: d.getFullYear(),
         };
+
       map[key].sales += Number(o.totalAmount) || 0;
     });
     return Object.values(map)
@@ -200,7 +203,7 @@ export default function Dashboard() {
           Dashboard
         </h1>
         <p className="font-cormorant text-xl text-gray-500 mt-1">
-          Welcome back to Hamdam Collections.
+          Welcome back to Hamdam Jewellery.
         </p>
       </div>
 
@@ -281,7 +284,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {chartData.length < 2 ? (
+        {chartData.length < 1 ? (
           <div className="h-[260px] flex items-center justify-center text-gray-300 font-cormorant text-xl">
             Not enough data yet
           </div>
@@ -506,7 +509,7 @@ function StatCard({ icon, title, value, sub, onClick }) {
       onClick={onClick}
       className="bg-white border border-[#e7dcc7] rounded-3xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow cursor-pointer"
     >
-      <div className="w-11 h-11 rounded-2xl bg-[#f7f4ef] border border-[#e7dcc7] flex items-center justify-center shrink-0">
+      <div className="w-11 h-11 rounded-2xl bg-[#f7f4ef] border border-[#e7dcc7] flex items-center justify-center shrink-0 text-primary/80">
         {icon}
       </div>
       <div className="min-w-0">
