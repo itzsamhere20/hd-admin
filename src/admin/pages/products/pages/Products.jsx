@@ -633,10 +633,10 @@ const Products = () => {
                 duration: 0.35,
                 ease: [0.22, 1, 0.36, 1],
               }}
-              className="w-3/4 sm:w-[420px] h-full bg-white shadow-2xl p-6 overflow-y-auto"
+              className="w-3/4 sm:w-[420px] h-full bg-white shadow-2xl  overflow-y-auto"
             >
               {/* DRAWER HEADER */}
-              <div className="sticky top-0 bg-white border-b border-[#f0ebe2] pb-4 mb-6 flex items-center justify-between">
+              <div className="sticky top-0 bg-white border-b p-6 border-[#f0ebe2] pb-4 mb-2 flex items-center justify-between">
                 <div>
                   <h2 className="font-luxury text-2xl text-gray-800 flex items-center gap-2">
                     <Package size={20} />
@@ -680,7 +680,7 @@ const Products = () => {
               </div>
 
               {/* FORM */}
-              <div className="space-y-5">
+              <div className="space-y-5 p-6">
                 {/* IMAGE */}
                 <div>
                   <p className="text-sm text-gray-500 mb-2">Product Image*</p>

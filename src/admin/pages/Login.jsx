@@ -54,7 +54,7 @@ const Login = () => {
       setLoading(true);
       const res = await api.post("/auth/login", { email, password });
       localStorage.setItem("token", res.data.token);
-      toast.success("Welcome back");
+      toast.success("Logged in successfully");
       navigate("/admin", { replace: true });
     } catch {
       toast.error("Invalid credentials");
